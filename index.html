@@ -3,72 +3,157 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>تطبيق العميل - SmartRide</title>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>تطبيق العميل - SmartRide v7.2</title>
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <!-- درع منع فحص المتصفح وقفل الدومين المحفوظ من النسخة الأصلية -->
+  <script>
+    (function(){
+      const _0xdom = ["github.io", "localhost", "127.0.0.1", ""];
+      if (!_0xdom.some(d => window.location.hostname.includes(d)) && window.location.protocol !== "file:") {
+        document.documentElement.innerHTML = "<h2 style='color:red;text-align:center;margin-top:20%;'>⛔ نسخة غير مصرح بها!</h2>";
+        throw new Error("Blocked");
+      }
+      document.addEventListener('contextmenu', function(e){ e.preventDefault(); });
+      document.addEventListener('keydown', function(e){
+        if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && ['I','J','C','i','j','c'].includes(e.key)) || (e.ctrlKey && ['U','S','u','s'].includes(e.key))) {
+          e.preventDefault(); return false;
+        }
+      });
+    })();
+  </script>
+
   <style>
-    :root { --primary: #2563eb; --success: #16a34a; --danger: #dc2626; --dark: #0f172a; --light: #f8fafc; --border: #e2e8f0; }
-    * { box-sizing: border-box; font-family: 'Cairo', sans-serif; margin: 0; padding: 0; }
-    body { background: var(--light); color: var(--dark); height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+    :root { --primary: #2563eb; --success: #16a34a; --danger: #dc2626; --warning: #d97706; --dark: #0f172a; --light: #f8fafc; --border: #e2e8f0; }
+    * { box-sizing: border-box; font-family: 'Cairo', sans-serif; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    body { background: var(--light); color: var(--dark); height: 100dvh; display: flex; flex-direction: column; overflow-x: hidden; user-select: none; }
+    input, textarea, select { user-select: text; }
 
-    /* هيدر العميل المدمج للموبايل */
-    .topbar { background: var(--dark); color: #fff; padding: 8px 12px; display: flex; justify-content: space-between; align-items: center; gap: 6px; flex-wrap: wrap; }
-    .wallet-badge { background: #1e293b; border: 1px solid #38bdf8; color: #38bdf8; padding: 3px 10px; border-radius: 20px; font-weight: 800; font-size: 0.75rem; }
+    /* هيدر العميل الأنيق للموبايل */
+    .topbar { background: var(--dark); color: #fff; padding: 10px 14px; display: flex; justify-content: space-between; align-items: center; gap: 8px; border-bottom: 2px solid #1e293b; z-index: 30; }
+    .wallet-badge { background: #1e293b; border: 1px solid #38bdf8; color: #38bdf8; padding: 4px 12px; border-radius: 20px; font-weight: 900; font-size: 0.78rem; white-space: nowrap; }
+    .menu-trigger-btn { background: #1e293b; color: #38bdf8; border: 2px solid #38bdf8; width: 40px; height: 40px; border-radius: 10px; font-size: 1.2rem; font-weight: 900; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; position: relative; flex-shrink: 0; }
+    .unread-dot { position: absolute; top: -4px; left: -4px; width: 12px; height: 12px; border-radius: 50%; background: #ef4444; border: 2px solid #fff; display: none; }
 
-    .rating-frame { padding: 3px 10px; border-radius: 8px; font-weight: 900; font-size: 0.78rem; display: inline-flex; align-items: center; gap: 5px; }
+    .rating-frame { padding: 4px 10px; border-radius: 9px; font-weight: 900; font-size: 0.8rem; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
     .tier-gold { background: linear-gradient(135deg, #fef08a, #eab308); color: #422006; border: 2px solid #ca8a04; }
     .tier-green { background: linear-gradient(135deg, #dcfce7, #22c55e); color: #052e16; border: 2px solid #15803d; }
     .tier-orange-red { background: linear-gradient(135deg, #fdba74, #ea580c); color: #fff; border: 2px solid #9a3412; }
     .tier-red { background: linear-gradient(135deg, #fca5a5, #dc2626); color: #fff; border: 2px solid #7f1d1d; }
 
-    .container { flex: 1; overflow-y: auto; padding: 10px; max-width: 480px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; }
-    .card { background: #fff; border-radius: 12px; padding: 12px; margin-bottom: 10px; border: 1px solid var(--border); box-shadow: 0 2px 5px rgba(0,0,0,0.04); }
-    label { font-size: 0.78rem; font-weight: 700; color: #475569; display: block; margin-bottom: 4px; }
-    input, select, textarea { width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.86rem; background: #f8fafc; margin-bottom: 8px; }
+    /* القائمة الجانبية للعميل (Side Drawer - 9 أقسام) */
+    .drawer-backdrop { position: fixed; inset: 0; background: rgba(15,23,42,0.72); z-index: 9100; display: none; }
+    .drawer-backdrop.open { display: block; }
+    .side-drawer { position: fixed; top: 0; right: -315px; width: 300px; height: 100dvh; background: #0f172a; color: #fff; border-left: 2px solid #38bdf8; z-index: 9101; transition: right 0.28s ease; display: flex; flex-direction: column; padding: 14px; overflow-y: auto; }
+    .side-drawer.open { right: 0; }
+    .drawer-item { width: 100%; background: #1e293b; color: #fff; border: 1px solid #334155; padding: 10px 12px; border-radius: 10px; margin-bottom: 7px; font-weight: 800; font-size: 0.82rem; text-align: right; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: 0.15s; white-space: nowrap; }
+    .drawer-item:hover { background: var(--primary); border-color: #60a5fa; }
 
-    .btn { width: 100%; padding: 10px; border: none; border-radius: 10px; font-weight: 800; cursor: pointer; font-size: 0.88rem; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; }
+    .container { flex: 1; overflow-y: auto; padding: 12px; max-width: 480px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; }
+    .card { background: #fff; border-radius: 14px; padding: 14px; margin-bottom: 12px; border: 1px solid var(--border); box-shadow: 0 3px 10px rgba(0,0,0,0.04); }
+    label { font-size: 0.78rem; font-weight: 800; color: #334155; display: block; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    input, select, textarea { width: 100%; height: 38px; padding: 6px 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.85rem; background: #f8fafc; margin-bottom: 8px; font-weight: 700; color: var(--dark); }
+    textarea { height: auto; }
+
+    .btn { width: 100%; padding: 10px 12px; border: none; border-radius: 10px; font-weight: 900; cursor: pointer; font-size: 0.86rem; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; white-space: nowrap; transition: 0.15s; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
     .btn-primary { background: var(--primary); color: #fff; }
     .btn-success { background: var(--success); color: #fff; }
     .btn-danger { background: var(--danger); color: #fff; }
+    .btn-warning { background: var(--warning); color: #fff; }
     .btn-dark { background: var(--dark); color: #38bdf8; border: 1px solid #38bdf8; }
     .btn-outline { background: #fff; border: 2px solid var(--primary); color: var(--primary); }
     .btn-wa { background: #25D366; color: #fff; }
 
-    /* بطاقات الفئات نظيفة بدون أسعار */
-    .cat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 6px 0 12px; }
-    .cat-item { border: 2px solid var(--border); border-radius: 10px; padding: 12px 8px; text-align: center; cursor: pointer; background: #f8fafc; font-weight: 900; font-size: 0.88rem; transition: 0.15s; }
-    .cat-item.selected { border-color: var(--primary); background: #eff6ff; color: var(--primary); }
+    /* زر بدء رحلة جديدة الضخم في الشاشة الافتتاحية */
+    .btn-start-giant {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: #fff;
+      padding: 16px;
+      font-size: 1.08rem;
+      border-radius: 14px;
+      box-shadow: 0 8px 22px rgba(37, 99, 235, 0.35);
+      border: 2px solid #93c5fd;
+      margin-top: 6px;
+    }
 
+    /* بطاقات الفئات نظيفة (المركبات المفعلة فقط في الإدارة) */
+    .cat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin: 6px 0 12px; }
+    .cat-item { border: 2px solid var(--border); border-radius: 12px; padding: 12px 8px; text-align: center; cursor: pointer; background: #f8fafc; font-weight: 900; font-size: 0.86rem; transition: 0.15s; white-space: nowrap; }
+    .cat-item.selected { border-color: var(--primary); background: #eff6ff; color: var(--primary); box-shadow: 0 2px 8px rgba(37,99,235,0.15); }
+
+    /* صندوق البروموكود للعميل */
+    .promo-box { background: #f0fdf4; border: 2px dashed #22c55e; padding: 10px; border-radius: 12px; margin-bottom: 10px; }
+    .promo-row { display: flex; gap: 6px; align-items: center; }
+    .promo-inp { margin: 0 !important; width: 135px !important; text-transform: uppercase; font-weight: 900; text-align: center; letter-spacing: 1.5px; background: #fff !important; border: 2px solid #86efac !important; color: #0f172a; height: 38px; }
+
+    /* البحث النصي الفوري عن العناوين مع الاقتراحات (Autocomplete) */
+    .autocomplete-wrap { position: relative; width: 100%; }
+    .autocomplete-list { position: absolute; top: 100%; right: 0; left: 0; background: #fff; border: 2px solid var(--primary); border-radius: 10px; max-height: 190px; overflow-y: auto; z-index: 9999; display: none; box-shadow: 0 8px 20px rgba(0,0,0,0.18); }
+    .autocomplete-item { padding: 8px 10px; font-size: 0.8rem; font-weight: 800; border-bottom: 1px solid #e2e8f0; cursor: pointer; color: var(--dark); }
+    .autocomplete-item:hover { background: #eff6ff; color: var(--primary); }
+
+    /* بطاقة الكابتن في الرحلة النشطة */
     .driver-profile-box { background: #f8fafc; padding: 10px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 8px; }
     .driver-avatar { width: 54px; height: 54px; border-radius: 50%; object-fit: cover; border: 2px solid var(--primary); flex-shrink: 0; background: #e2e8f0; }
     .plate-box { background: #facc15; color: #000; font-weight: 900; padding: 2px 8px; border-radius: 5px; font-size: 0.78rem; }
 
-    .fullscreen-modal { position: fixed; inset: 0; width: 100vw; height: 100vh; background: #fff; z-index: 9999; display: none; flex-direction: column; }
+    /* النوافذ بملء الشاشة */
+    .fullscreen-modal { position: fixed; inset: 0; width: 100vw; height: 100dvh; background: var(--light); z-index: 9500; display: none; flex-direction: column; }
     .fullscreen-modal.open { display: flex; }
-    .modal-header { background: var(--dark); color: #fff; padding: 10px 14px; font-weight: 800; font-size: 0.88rem; display: flex; justify-content: space-between; align-items: center; }
-    #picker-map { flex: 1; width: 100%; }
-    .map-modal-footer { position: absolute; bottom: 20px; left: 15px; right: 15px; z-index: 10000; }
+    .modal-header { background: var(--dark); color: #fff; padding: 11px 14px; font-weight: 900; font-size: 0.88rem; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
 
-    #tracking-map-wrap { width: 100%; height: 240px; border-radius: 10px; overflow: hidden; border: 2px solid var(--border); margin-top: 8px; display: none; }
-    #tracking-map { width: 100%; height: 100%; }
+    /* حاوية الخريطة الموحدة الوحيدة (Single Mapbox Instance) */
+    #shared-map-host { flex: 1; width: 100%; height: 100%; position: relative; background: #f1f5f9; }
+    .map-modal-footer { position: absolute; bottom: 20px; left: 15px; right: 15px; z-index: 10000; display: flex; gap: 8px; }
 
-    .auth-overlay { position: fixed; inset: 0; background: var(--dark); z-index: 9500; display: flex; align-items: center; justify-content: center; padding: 12px; overflow-y: auto; }
+    #active-tracking-map-slot { width: 100%; height: 225px; border-radius: 12px; overflow: hidden; border: 2px solid var(--border); margin-top: 8px; display: none; position: relative; }
+    #family-live-map-slot { width: 100%; height: 260px; border-radius: 12px; overflow: hidden; border: 2px solid var(--primary); margin-top: 10px; display: none; position: relative; }
+
+    /* أيقونة سيارات الكباتن على الخريطة بدون اسم وبدون تقييم وبلون الفئة */
+    .car-tier-marker {
+      width: 36px; height: 36px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.15rem; box-shadow: 0 3px 10px rgba(0,0,0,0.35);
+      border: 2.5px solid #fff; transition: transform 0.2s;
+    }
+    .car-tier-gold { background: linear-gradient(135deg, #fde047, #ca8a04); }
+    .car-tier-green { background: linear-gradient(135deg, #4ade80, #15803d); }
+    .car-tier-orange { background: linear-gradient(135deg, #fb923c, #c2410c); }
+
+    /* الجداول في سطر واحد مختصر (Single-Line Priority) */
+    table { width: 100%; border-collapse: collapse; font-size: 0.76rem; }
+    th, td { border: 1px solid #cbd5e1; padding: 6px 8px; text-align: center; white-space: nowrap; }
+    th { background: #0f172a; color: #fff; font-weight: 900; }
+
+    /* عناصر عناوين الرسائل المختصرة في سطر واحد (Mini Email Client) */
+    .msg-inbox-row { background: #fff; border: 1px solid #cbd5e1; border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; gap: 8px; cursor: pointer; font-size: 0.81rem; transition: 0.15s; }
+    .msg-inbox-row:hover { border-color: var(--primary); background: #eff6ff; }
+
+    /* النافذة المنبثقة للتفاصيل الكاملة (Popup Modal) */
+    .popup-overlay { position: fixed; inset: 0; background: rgba(15,23,42,0.78); z-index: 9950; display: none; align-items: center; justify-content: center; padding: 15px; }
+    .popup-overlay.open { display: flex; }
+    .popup-card { background: #fff; width: 100%; max-width: 460px; border-radius: 14px; padding: 16px; max-height: 88dvh; overflow-y: auto; border: 2px solid var(--primary); }
+    .kv-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #cbd5e1; font-size: 0.81rem; gap: 10px; }
+
+    .auth-overlay { position: fixed; inset: 0; background: var(--dark); z-index: 9800; display: flex; align-items: center; justify-content: center; padding: 12px; overflow-y: auto; }
     .auth-box { background: #fff; color: var(--dark); width: 100%; max-width: 420px; border-radius: 16px; padding: 18px; max-height: 94vh; overflow-y: auto; }
     .auth-tabs { display: flex; gap: 6px; margin-bottom: 12px; }
     .auth-tab { flex: 1; padding: 8px; font-weight: 800; border-radius: 8px; border: none; cursor: pointer; background: #f1f5f9; }
     .auth-tab.active { background: var(--primary); color: #fff; }
-
-    .explore-driver-pin { display: flex; flex-direction: column; align-items: center; }
-    .explore-driver-pin .rate-under { font-size: 0.66rem; font-weight: 900; padding: 2px 6px; border-radius: 5px; white-space: nowrap; }
   </style>
 </head>
 <body>
 
-  <!-- شاشة تسجيل الدخول والتسجيل للعميل -->
+  <!-- ================= شاشة تسجيل الدخول والتسجيل للعميل ================= -->
   <div class="auth-overlay" id="auth-screen">
     <div class="auth-box">
-      <h3 style="text-align:center; color:var(--primary); margin-bottom:10px;">🚖 بوابة العميل - SmartRide</h3>
+      <h3 style="text-align:center; color:var(--primary); margin-bottom:10px;">🚖 بوابة العميل - SmartRide v7.2</h3>
       <div class="auth-tabs">
         <button class="auth-tab active" id="tab-login" onclick="switchAuth('login')">تسجيل الدخول</button>
         <button class="auth-tab" id="tab-reg" onclick="switchAuth('reg')">حساب جديد</button>
@@ -106,106 +191,139 @@
     </div>
   </div>
 
-  <!-- الشريط العلوي للعميل -->
-  <div class="topbar">
-    <div id="hdr-client-badge" class="rating-frame tier-green">
-      <span id="hdr-client-name">العميل</span>
-      <span>⭐ <b id="hdr-client-rating">4.0</b></span>
+  <!-- ================= القائمة الجانبية للعميل (Side Drawer - 9 أقسام) ================= -->
+  <div class="drawer-backdrop" id="cli-drawer-backdrop" onclick="toggleClientDrawer(false)"></div>
+  <div class="side-drawer" id="cli-side-drawer">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #334155; padding-bottom:10px;">
+      <div>
+        <div style="font-weight:900; color:#38bdf8; font-size:0.95rem;" id="drw-cli-name">عميل SmartRide</div>
+        <div style="font-size:0.76rem; color:#4ade80; font-weight:800;" id="drw-cli-wallet">المحفظة: 0.00 ج.م</div>
+      </div>
+      <button class="menu-trigger-btn" style="width:34px; height:34px; font-size:0.95rem;" onclick="toggleClientDrawer(false)">✖</button>
     </div>
-    <div style="display:flex; gap:5px; align-items:center;">
+
+    <button class="drawer-item" onclick="openDrawerSection('history')"><span>1. 🕓 رحلاتي السابقة</span><span>⬅️</span></button>
+    <button class="drawer-item" onclick="openDrawerSection('my_family_code')"><span>2. 🛡️ التتبع العائلي لرحلتي</span><span>⬅️</span></button>
+    <button class="drawer-item" onclick="openDrawerSection('track_by_code')"><span>3. 📡 متابعة رحلة بكود</span><span>⬅️</span></button>
+    <button class="drawer-item" onclick="openDrawerSection('wallet')"><span>4. 👛 المحفظة والرصيد</span><span>⬅️</span></button>
+    <button class="drawer-item" onclick="openDrawerSection('statement')"><span>5. 📊 كشف الحساب المالي</span><span>⬅️</span></button>
+    <button class="drawer-item" onclick="openClientMessages()"><span>6. ✉️ المراسلات والشكاوى</span><span>⬅️</span></button>
+    <button class="drawer-item" onclick="openDrawerSection('settings')"><span>7. ⚙️ الإعدادات</span><span>⬅️</span></button>
+    <button class="drawer-item" onclick="openDrawerSection('help')"><span>8. ❓ المساعدة والدعم</span><span>⬅️</span></button>
+    <button class="drawer-item" style="background:#450a0a; border-color:#ef4444; color:#fecaca; margin-top:auto;" onclick="logoutClient()"><span>9. 🚪 تسجيل الخروج</span><span>⚠️</span></button>
+  </div>
+
+  <!-- ================= الشريط العلوي للعميل ================= -->
+  <div class="topbar">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <button class="menu-trigger-btn" onclick="toggleClientDrawer(true)" title="القائمة الجانبية">
+        ☰
+        <span class="unread-dot" id="hdr-unread-dot"></span>
+      </button>
+      <div id="hdr-client-badge" class="rating-frame tier-green">
+        <span id="hdr-client-name">العميل</span>
+        <span>⭐ <b id="hdr-client-rating">4.0</b></span>
+      </div>
+    </div>
+    <div style="display:flex; gap:6px; align-items:center;">
       <div class="wallet-badge">💳 <span id="hdr-wallet">0</span> ج</div>
-      <button onclick="openClientMessages()" style="background:#0284c7; color:#fff; border:none; padding:4px 8px; border-radius:6px; font-size:0.72rem; font-weight:800; cursor:pointer;">✉️ المراسلات</button>
-      <button onclick="logoutClient()" style="background:var(--danger); color:#fff; border:none; padding:4px 8px; border-radius:6px; font-size:0.72rem; cursor:pointer;">خروج</button>
     </div>
   </div>
 
+  <!-- ================= الصفحة الرئيسية النظيفة للموبايل (بدون خريطة في المقدمة) ================= -->
   <div class="container">
-    <div id="penalty-notice" style="display:none; background:#fef2f2; color:#991b1b; border:1px solid #f87171; padding:8px; border-radius:8px; font-size:0.78rem; font-weight:800; margin-bottom:8px;">
-      ⚠️ لديك غرامة إلغاء سابقة (<span id="pen-val">10</span> ج.م) تُحصل في الرحلة القادمة.
+    <div id="penalty-notice" style="display:none; background:#fef2f2; color:#991b1b; border:1px solid #f87171; padding:8px 10px; border-radius:10px; font-size:0.78rem; font-weight:800; margin-bottom:10px;">
+      ⚠️ لديك غرامة إلغاء سابقة (<span id="pen-val">15</span> ج.م) تُسوى تلقائياً في الرحلة القادمة.
     </div>
 
-    <!-- بطاقة حجز رحلة -->
-    <div class="card" id="booking-card">
-      <button class="btn btn-dark" style="margin-bottom:10px; font-size:0.82rem;" onclick="openMapModal('explore')">
-        📡 استكشف الكباتن المتاحين حولي عالخريطة (بتقييماتهم)
-      </button>
-
-      <div style="background:#fef2f2; border:1px solid #fecaca; padding:8px; border-radius:8px; margin-bottom:8px; font-size:0.8rem;">
-        <div>🧍‍♂️ <b>الانطلاق:</b> <span id="lbl-pickup" style="color:var(--danger); font-weight:800;">تلقائي (GPS)</span></div>
-        <div style="display:flex; gap:6px; margin-top:6px;">
-          <button class="btn btn-danger" style="padding:6px; font-size:0.75rem;" onclick="detectClientGPS()">📡 موقعي تلقائياً</button>
-          <button class="btn btn-outline" style="padding:6px; font-size:0.75rem; border-color:var(--danger); color:var(--danger);" onclick="openMapModal('pickup')">🗺️ تحديد يدوياً</button>
+    <!-- بطاقة الشاشة الافتتاحية المخصصة فقط للغرض الأساسي (اسم العميل + المحفظة + المركبة + البرومو + زر بدء رحلة جديدة) -->
+    <div class="card" id="home-clean-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; background:#f8fafc; border:1px solid var(--border); padding:10px 12px; border-radius:12px; margin-bottom:12px;">
+        <div>
+          <div style="font-size:0.74rem; color:#64748b; font-weight:800;">مرحباً بك في SmartRide</div>
+          <div style="font-size:1rem; font-weight:900; color:var(--dark);" id="home-welcome-name">عميلنا العزيز</div>
+        </div>
+        <div style="text-align:left;">
+          <div style="font-size:0.72rem; color:#64748b; font-weight:800;">رصيد محفظتك</div>
+          <div style="font-size:1.05rem; font-weight:900; color:var(--success);"><span id="home-wallet-val">0.00</span> ج.م</div>
         </div>
       </div>
 
-      <div style="background:#eff6ff; border:1px solid #bfdbfe; padding:8px; border-radius:8px; margin-bottom:10px; font-size:0.8rem;">
-        <div>🏁 <b>الوجهة:</b> <span id="lbl-dropoff" style="color:var(--primary); font-weight:800;">مفتوحة (تُحسب بالعداد أثناء السير)</span></div>
-        <div style="display:flex; gap:6px; margin-top:6px;">
-          <button class="btn btn-primary" style="padding:6px; font-size:0.75rem;" onclick="openMapModal('dropoff')">🗺️ تحديد الوجهة</button>
-          <button class="btn btn-outline" style="padding:6px; font-size:0.75rem; border-color:#64748b; color:#475569;" onclick="clearDropoff()">❌ بدون وجهة</button>
-        </div>
-      </div>
-
-      <label>اختر نوع المركبة:</label>
+      <label>🚗 اختر نوع المركبة:</label>
       <div class="cat-grid" id="categories-grid"></div>
 
-      <label>طريقة الدفع:</label>
-      <select id="payment-method">
-        <option value="cash">💵 نقداً (كاش للكابتن)</option>
-        <option value="wallet">💳 خصم من رصيد التطبيق</option>
-      </select>
+      <!-- خانة البروموكود للعميل -->
+      <div class="promo-box">
+        <label style="color:#166534; margin-bottom:5px;">🎁 كود الخصم (البرومو كود):</label>
+        <div class="promo-row">
+          <input type="text" id="cli-promo-input" class="promo-inp" placeholder="SR-XXXXX" maxlength="12">
+          <button class="btn btn-success" id="btn-apply-promo" style="width:auto; padding:8px 14px; font-size:0.8rem; height:38px;" onclick="applyClientPromoCode(false)">تطبيق</button>
+          <span id="cli-promo-status-lbl" style="font-size:0.76rem; font-weight:900; flex:1; line-height:1.3;"></span>
+        </div>
+      </div>
 
-      <button class="btn btn-primary" id="btn-request" onclick="submitRideRequest()">🚀 اطلب المشوار الآن</button>
+      <button class="btn btn-start-giant" id="btn-open-trip-screen" onclick="openIndependentTripScreen()">
+        🚀 بدء رحلة جديدة الآن
+      </button>
     </div>
 
-    <!-- بطاقة متابعة الرحلة الجارية وحالة الكابتن ومكانه الحالي -->
+    <!-- ================= بطاقة الرحلة النشطة ومتابعة الكابتن والـ ETA والتتبع العائلي ================= -->
     <div class="card" id="active-trip-card" style="display:none;">
-      <div id="trip-status-banner" style="background:#eff6ff; border:2px solid var(--primary); color:var(--primary); padding:8px; border-radius:8px; font-weight:900; font-size:0.9rem; text-align:center; margin-bottom:8px;"></div>
-      
+      <div id="trip-status-banner" style="background:#eff6ff; border:2px solid var(--primary); color:var(--primary); padding:10px; border-radius:10px; font-weight:900; font-size:0.88rem; text-align:center; margin-bottom:10px; line-height:1.5;"></div>
+
       <div id="driver-info-box" class="driver-profile-box" style="display:none;">
         <div style="display:flex; align-items:center; gap:10px;">
           <img id="ui-drv-photo" class="driver-avatar" src="" alt="صورة الكابتن">
-          <div style="flex:1;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <div style="flex:1; min-width:0;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px; gap:4px;">
               <div id="ui-drv-badge" class="rating-frame tier-green" style="font-size:0.75rem;">
                 <span id="ui-drv-name"></span> ⭐ <b id="ui-drv-rate">4.0</b>
               </div>
               <span class="plate-box" id="ui-drv-plate"></span>
             </div>
-            <div style="font-size:0.78rem; font-weight:700;" id="ui-drv-car"></div>
-            <div style="font-size:0.78rem; font-weight:800; margin-top:2px;">📱 هاتف الكابتن: <span id="ui-drv-phone" dir="ltr"></span></div>
-            <div style="font-size:0.76rem; color:var(--success); font-weight:900; margin-top:3px;" id="ui-drv-live-loc"></div>
+            <div style="font-size:0.79rem; font-weight:800; color:#334155;" id="ui-drv-car"></div>
+            <div style="font-size:0.78rem; color:var(--primary); font-weight:900; margin-top:3px;" id="ui-drv-eta"></div>
+            <div style="font-size:0.75rem; color:var(--success); font-weight:900; margin-top:2px;" id="ui-drv-live-loc"></div>
           </div>
         </div>
         <div style="display:flex; gap:6px; margin-top:8px;">
-          <button class="btn btn-primary" style="flex:1; padding:6px; font-size:0.78rem;" onclick="callDriverNow()">📞 اتصال بالكابتن</button>
-          <button class="btn btn-wa" style="flex:1; padding:6px; font-size:0.78rem;" onclick="waDriverNow()">💬 واتساب</button>
+          <button class="btn btn-primary" style="flex:1; padding:8px; font-size:0.78rem;" onclick="callDriverNow()">📞 اتصال بالكابتن</button>
+          <button class="btn btn-wa" style="flex:1; padding:8px; font-size:0.78rem;" onclick="waDriverNow()">💬 واتساب</button>
         </div>
       </div>
 
-      <div id="wait-5min-box" style="display:none; background:#fef3c7; border:2px solid #f59e0b; padding:8px; border-radius:8px; text-align:center; margin-bottom:8px;">
+      <!-- شريط كود التتبع العائلي الفريد (FAM-XXXXXX) -->
+      <div id="family-share-strip" style="display:none; background:#f0fdf4; border:1px solid #86efac; padding:8px 10px; border-radius:10px; margin-bottom:8px; justify-content:space-between; align-items:center; gap:8px;">
+        <div style="font-size:0.76rem; font-weight:800; color:#065f46;">
+          🛡️ كود التتبع العائلي: <b id="active-fam-code" style="color:var(--primary); font-size:0.86rem;" dir="ltr">FAM-000000</b>
+        </div>
+        <button class="btn btn-wa" style="width:auto; padding:5px 10px; font-size:0.74rem;" onclick="shareFamilyCodeWhatsApp()">📲 مشاركة لأسرتي</button>
+      </div>
+
+      <div id="wait-5min-box" style="display:none; background:#fef3c7; border:2px solid #f59e0b; padding:8px; border-radius:10px; text-align:center; margin-bottom:8px;">
         <div style="font-size:0.78rem; font-weight:800; color:#92400e;">⏳ الكابتن وصل وبانتظارك:</div>
         <div id="wait-5min-digits" style="font-size:1.4rem; font-weight:900; color:var(--danger);">05:00</div>
       </div>
 
       <div id="live-meter-box" style="display:none; background:var(--dark); color:#fff; padding:10px; border-radius:10px; text-align:center; margin-bottom:8px;">
         <div style="font-size:0.72rem; color:#94a3b8;">الأجرة الحالية للمشوار</div>
-        <div style="font-size:1.4rem; font-weight:900; color:#4ade80;"><span id="live-fare">0</span> ج.م</div>
+        <div style="font-size:1.45rem; font-weight:900; color:#4ade80;"><span id="live-fare">0</span> ج.م</div>
         <div style="font-size:0.76rem; color:#cbd5e1;">المسافة المقطوعة: <b id="live-km">0.00</b> كم</div>
       </div>
 
-      <div id="tracking-map-wrap"><div id="tracking-map"></div></div>
+      <!-- فتحة استضافة الخريطة الوحيدة أثناء الرحلة النشطة -->
+      <div id="active-tracking-map-slot"></div>
 
       <div style="display:flex; gap:6px; margin-top:10px;">
-        <button class="btn btn-outline" style="flex:1; font-size:0.78rem; padding:8px;" onclick="messageAdminAboutCurrentRide()">✉️ مراسلة الإدارة بخصوص هذه الرحلة</button>
+        <button class="btn btn-outline" style="flex:1; font-size:0.78rem; padding:8px;" onclick="messageAdminAboutCurrentRide()">✉️ مراسلة الإدارة</button>
         <button class="btn btn-danger" id="btn-cancel-ride" style="flex:1; font-size:0.78rem; padding:8px;" onclick="cancelRideByClient()">إلغاء الرحلة</button>
       </div>
     </div>
 
-    <!-- الفاتورة وتقييم الكابتن -->
+    <!-- ================= الفاتورة الختامية وتقييم الكابتن وزر تم ================= -->
     <div class="card" id="invoice-card" style="display:none; border:2px solid var(--success); background:#f0fdf4; text-align:center;">
       <h3 style="color:var(--success); margin-bottom:6px;">🏁 الحمد لله على السلامة!</h3>
-      <div id="invoice-body" style="font-size:0.86rem; margin-bottom:10px; line-height:1.6;"></div>
+      <div id="invoice-body" style="font-size:0.85rem; margin-bottom:10px; line-height:1.7; background:#fff; padding:10px; border-radius:10px; border:1px solid #bbf7d0;"></div>
       <div style="font-weight:800; font-size:0.85rem;">⭐ قيّم الكابتن:</div>
       <div style="display:flex; justify-content:center; gap:8px; margin:8px 0; direction:ltr;" id="cli-stars-box">
         <button onclick="setDrvStar(1)" style="font-size:2rem; background:none; border:none; color:#eab308; cursor:pointer;">★</button>
@@ -214,36 +332,263 @@
         <button onclick="setDrvStar(4)" style="font-size:2rem; background:none; border:none; color:#eab308; cursor:pointer;">★</button>
         <button onclick="setDrvStar(5)" style="font-size:2rem; background:none; border:none; color:#eab308; cursor:pointer;">★</button>
       </div>
-      <button class="btn btn-success" onclick="submitDriverRating()">✅ إرسال التقييم وإغلاق</button>
+      <button class="btn btn-success" onclick="submitDriverRating()">✔️ تم</button>
     </div>
   </div>
 
-  <!-- نافذة الخريطة ملء الشاشة -->
-  <div class="fullscreen-modal" id="map-modal">
+  <!-- ================= شاشة الرحلة المستقلة (تحديد الانطلاق والوجهة والبحث النصي الفوري) ================= -->
+  <div class="fullscreen-modal" id="independent-trip-modal">
     <div class="modal-header">
-      <span id="map-modal-title">الخريطة</span>
-      <button class="btn btn-danger" style="width:auto; padding:4px 10px; font-size:0.75rem;" onclick="closeMapModal(false)">إغلاق ✖</button>
-    </div>
-    <div id="picker-map"></div>
-    <div class="map-modal-footer">
-      <button class="btn btn-success" style="padding:13px; font-size:1rem;" onclick="closeMapModal(true)">✔️ تم</button>
-    </div>
-  </div>
-
-  <!-- نافذة المراسلات مع الإدارة -->
-  <div class="fullscreen-modal" id="cli-messages-modal">
-    <div class="modal-header">
-      <span>✉️ مراسلات العميل مع الإدارة</span>
-      <button class="btn btn-danger" style="width:auto; padding:4px 10px; font-size:0.75rem;" onclick="document.getElementById('cli-messages-modal').classList.remove('open')">إغلاق ✖</button>
+      <span>🚖 إعداد وتأكيد تفاصيل الرحلة</span>
+      <button class="btn btn-danger" style="width:auto; padding:4px 10px; font-size:0.75rem;" onclick="closeIndependentTripScreen()">رجوع ✖</button>
     </div>
     <div class="container">
       <div class="card">
-        <input type="text" id="cli-msg-ride-id" placeholder="كود الرحلة المرتبطة (اختياري)">
-        <input type="text" id="cli-msg-subj" placeholder="عنوان الرسالة">
-        <textarea id="cli-msg-body" rows="2" placeholder="اكتب رسالتك للإدارة..."></textarea>
-        <button class="btn btn-primary" onclick="sendClientNewThread()">📨 إرسال للإدارة</button>
+        <button class="btn btn-dark" style="margin-bottom:10px; font-size:0.8rem;" onclick="openInteractiveMapPicker('explore')">
+          📡 استكشف سيارات الكباتن المتاحين حولي عالخريطة
+        </button>
+
+        <!-- موقع التواجد (الانطلاق) -->
+        <div style="background:#fef2f2; border:1px solid #fecaca; padding:10px; border-radius:10px; margin-bottom:10px;">
+          <label style="color:#991b1b;">🟢 موقع التواجد (نقطة الانطلاق):</label>
+          <div id="lbl-pickup" style="font-size:0.82rem; font-weight:900; color:var(--danger); margin-bottom:6px;">جاري قراءة عنوان موقعك الحالي تلقائياً...</div>
+          <div class="autocomplete-wrap">
+            <input type="text" id="pickup-search-inp" placeholder="🔍 ابحث باسم الشارع أو المنطقة لتغيير نقطة الانطلاق..." oninput="handlePlaceSearchInput('pickup', this.value)" style="margin-bottom:6px; background:#fff;">
+            <div class="autocomplete-list" id="pickup-autocomplete-list"></div>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button class="btn btn-danger" style="padding:7px; font-size:0.76rem; flex:1;" onclick="detectClientGPS()">📡 موقعي الحالي GPS</button>
+            <button class="btn btn-outline" style="padding:7px; font-size:0.76rem; flex:1; border-color:var(--danger); color:var(--danger);" onclick="openInteractiveMapPicker('pickup')">🗺️ فتح الخريطة للاختيار</button>
+          </div>
+        </div>
+
+        <!-- وجهة الوصول -->
+        <div style="background:#eff6ff; border:1px solid #bfdbfe; padding:10px; border-radius:10px; margin-bottom:10px;">
+          <label style="color:#1e40af;">🏁 وجهة الوصول (اختياري):</label>
+          <div id="lbl-dropoff" style="font-size:0.82rem; font-weight:900; color:var(--primary); margin-bottom:6px;">«سيتم تحديد سعر الرحلة عند الوصول إلى وجهتك.»</div>
+          <div class="autocomplete-wrap">
+            <input type="text" id="dropoff-search-inp" placeholder="🔍 ابحث باسم الشارع أو المعلم لتحديد وجهة الوصول..." oninput="handlePlaceSearchInput('dropoff', this.value)" style="margin-bottom:6px; background:#fff;">
+            <div class="autocomplete-list" id="dropoff-autocomplete-list"></div>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <button class="btn btn-primary" style="padding:7px; font-size:0.76rem; flex:1;" onclick="openInteractiveMapPicker('dropoff')">🗺️ فتح الخريطة للاختيار</button>
+            <button class="btn btn-outline" style="padding:7px; font-size:0.76rem; flex:1; border-color:#64748b; color:#475569;" onclick="clearDropoff()">❌ بدون وجهة محددة</button>
+          </div>
+        </div>
+
+        <!-- ملخص المسافة والسعر التقديري -->
+        <div id="trip-estimate-banner" style="background:#f8fafc; border:1px solid #cbd5e1; padding:9px 12px; border-radius:10px; margin-bottom:10px; font-size:0.81rem; font-weight:800; color:#334155; text-align:center;">
+          💡 «سيتم تحديد سعر الرحلة عند الوصول إلى وجهتك.»
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; align-items:end; margin-bottom:8px;">
+          <div>
+            <label>💳 طريقة الدفع:</label>
+            <select id="payment-method" style="margin-bottom:0;">
+              <option value="cash">💵 نقداً (كاش للكابتن)</option>
+              <option value="wallet">👛 خصم من رصيد المحفظة</option>
+            </select>
+          </div>
+          <div>
+            <label>🚗 الفئة المختارة:</label>
+            <input type="text" id="selected-cat-readonly" readonly style="margin-bottom:0; background:#eff6ff; color:var(--primary); font-weight:900; text-align:center;">
+          </div>
+        </div>
+
+        <button class="btn btn-success" id="btn-request" style="padding:14px; font-size:1rem;" onclick="submitRideRequest()">
+          🚀 تأكيد وطلب المشوار الآن
+        </button>
       </div>
-      <div id="cli-threads-list"></div>
+    </div>
+  </div>
+
+  <!-- ================= نافذة الخريطة التفاعلية لاختيار النقاط واستكشاف السيارات ================= -->
+  <div class="fullscreen-modal" id="map-modal">
+    <div class="modal-header">
+      <span id="map-modal-title">🗺️ الخريطة التفاعلية</span>
+      <button class="btn btn-danger" style="width:auto; padding:4px 10px; font-size:0.75rem;" onclick="closeMapModal(false)">إغلاق ✖</button>
+    </div>
+    <div id="modal-map-slot" style="flex:1; width:100%; display:flex; flex-direction:column; position:relative;">
+      <div id="shared-map-host"></div>
+    </div>
+    <div class="map-modal-footer">
+      <button class="btn btn-success" id="btn-confirm-map-point" style="padding:13px; font-size:1rem;" onclick="closeMapModal(true)">✔️ تأكيد النقطة المختارة</button>
+    </div>
+  </div>
+
+  <!-- ================= نافذة المراسلات والشكاوى (صندوق البريد المصغر Mini Email Client) ================= -->
+  <div class="fullscreen-modal" id="cli-messages-modal">
+    <div class="modal-header">
+      <span>✉️ المراسلات والشكاوى مع الإدارة</span>
+      <button class="btn btn-danger" style="width:auto; padding:4px 10px; font-size:0.75rem;" onclick="document.getElementById('cli-messages-modal').classList.remove('open')">إغلاق ✖</button>
+    </div>
+    <div class="container" style="max-width:560px;">
+
+      <!-- صفحة قائمة عناوين الرسائل المختصرة (Inbox List) -->
+      <div id="cli-inbox-list-view">
+        <div class="card">
+          <h4 style="color:var(--primary); margin-bottom:8px; font-size:0.88rem;">➕ إرسال رسالة أو شكوى جديدة للإدارة</h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+            <div>
+              <label>نوع المراسلة:</label>
+              <select id="cli-msg-type">
+                <option value="complaint">⚖️ شكوى / تظلم</option>
+                <option value="support">💬 استفسار / دعم</option>
+              </select>
+            </div>
+            <div>
+              <label>كود الرحلة (اختياري):</label>
+              <input type="text" id="cli-msg-ride-id" placeholder="SR-XXXX">
+            </div>
+          </div>
+          <label>عنوان الرسالة:</label>
+          <input type="text" id="cli-msg-subj" placeholder="اكتب عنواناً مختصراً">
+          <label>تفاصيل الرسالة:</label>
+          <textarea id="cli-msg-body" rows="2" placeholder="اشرح تفاصيل رسالتك أو شكواك..."></textarea>
+          <button class="btn btn-primary" onclick="sendClientNewThread()">📨 إرسال للإدارة</button>
+        </div>
+
+        <input type="text" id="search-cli-msg-inp" placeholder="🔍 ابحث في عناوين الرسائل أو رقم المرجع..." oninput="renderCliThreads()">
+        <div id="cli-threads-list"></div>
+      </div>
+
+      <!-- الصفحة المستقلة لعرض تفاصيل الرسالة كاملة وسجل الردود (Full Message View) -->
+      <div id="cli-full-message-view" style="display:none; flex-direction:column; height:82dvh;">
+        <div class="card" style="flex:1; display:flex; flex-direction:column; margin-bottom:0;">
+          <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid #e2e8f0; padding-bottom:8px; margin-bottom:8px; gap:8px;">
+            <b id="cli-open-msg-subj" style="color:var(--primary); font-size:0.88rem;"></b>
+            <button class="btn btn-dark" style="width:auto; padding:4px 10px; font-size:0.75rem;" onclick="backToClientInboxList()">🔙 القائمة</button>
+          </div>
+          <div id="cli-open-msg-meta" style="font-size:0.75rem; color:#64748b; margin-bottom:8px; font-weight:800;"></div>
+          <div id="cli-open-msg-bubbles" style="flex:1; overflow-y:auto; background:#f8fafc; border:1px solid #cbd5e1; border-radius:10px; padding:10px; margin-bottom:10px;"></div>
+
+          <!-- مربع كتابة الرد بالأسفل (يختفي إذا كانت الرسالة allowReply: false) -->
+          <div id="cli-reply-box-wrap" style="display:flex; gap:6px;">
+            <input type="text" id="cli-reply-inp" placeholder="اكتب ردك للإدارة هنا..." style="margin-bottom:0;">
+            <button class="btn btn-primary" style="width:100px;" onclick="sendClientReplyInThread()">إرسال</button>
+          </div>
+          <div id="cli-no-reply-banner" style="display:none; background:#eff6ff; border:1px solid #93c5fd; color:#1e40af; padding:9px; border-radius:8px; text-align:center; font-size:0.78rem; font-weight:900;">
+            🔒 هذا إشعار إداري رسمي من إدارة SmartRide للاطلاع فقط (غير مخصص للرد).
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= نافذة أقسام القائمة الجانبية (رحلاتي السابقة، التتبع العائلي، المحفظة، كشف الحساب، الإعدادات، الدعم) ================= -->
+  <div class="fullscreen-modal" id="drawer-section-modal">
+    <div class="modal-header">
+      <span id="drawer-section-title">القسم</span>
+      <button class="btn btn-danger" style="width:auto; padding:4px 10px; font-size:0.75rem;" onclick="closeDrawerSectionModal()">إغلاق ✖</button>
+    </div>
+    <div class="container" style="max-width:600px;">
+
+      <!-- 1. قسم رحلاتي السابقة (ممنوع تماماً إظهار أي بيانات تخص الكابتن) -->
+      <div id="sec-history" class="drawer-sec-pane" style="display:none;">
+        <div class="card">
+          <input type="text" id="search-cli-history-inp" placeholder="🔍 ابحث بكود الرحلة أو عنوان الانطلاق أو الوجهة..." oninput="renderClientPastRides()">
+          <div style="overflow-x:auto;">
+            <table>
+              <thead>
+                <tr><th>الكود</th><th>التاريخ</th><th>المسافة</th><th>الأجرة</th><th>الحالة</th><th>إجراء</th></tr>
+              </thead>
+              <tbody id="cli-history-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. قسم التتبع العائلي لرحلتي -->
+      <div id="sec-my_family_code" class="drawer-sec-pane" style="display:none;">
+        <div class="card" style="text-align:center;">
+          <h4 style="color:var(--primary); margin-bottom:8px;">🛡️ كود التتبع العائلي لرحلتك الجارية</h4>
+          <p style="font-size:0.8rem; color:#475569; margin-bottom:12px;">يمكنك مشاركة هذا الكود الفريد مع أفراد أسرتك لمتابعة خط سير رحلتك لحظة بلحظة. الكود صالح طوال مدة الرحلة النشطة فقط.</p>
+          <div id="my-fam-code-box" style="background:#eff6ff; border:2px dashed var(--primary); padding:14px; border-radius:12px; font-size:1.3rem; font-weight:900; color:var(--primary); margin-bottom:12px;" dir="ltr">
+            لا توجد رحلة نشطة حالياً
+          </div>
+          <button class="btn btn-wa" id="btn-sec-share-fam" onclick="shareFamilyCodeWhatsApp()" disabled>📲 مشاركة الكود عبر واتساب</button>
+        </div>
+      </div>
+
+      <!-- 3. قسم متابعة رحلة بكود عائلي (محمي ضد التخمين Brute Force) -->
+      <div id="sec-track_by_code" class="drawer-sec-pane" style="display:none;">
+        <div class="card">
+          <h4 style="color:var(--primary); margin-bottom:8px;">📡 متابعة رحلة مباشرة بكود التتبع العائلي</h4>
+          <label>أدخل كود التتبع العائلي (FAM-XXXXXX):</label>
+          <div style="display:flex; gap:6px;">
+            <input type="text" id="fam-track-input" placeholder="FAM-123456" style="margin-bottom:0; text-transform:uppercase; text-align:center; font-weight:900;" dir="ltr">
+            <button class="btn btn-primary" style="width:120px;" onclick="lookupRideByFamilyCode()">🔍 متابعة</button>
+          </div>
+          <div id="fam-track-result" style="margin-top:10px; font-size:0.82rem; font-weight:800;"></div>
+          <div id="family-live-map-slot"></div>
+        </div>
+      </div>
+
+      <!-- 4. قسم المحفظة والرصيد -->
+      <div id="sec-wallet" class="drawer-sec-pane" style="display:none;">
+        <div class="card" style="text-align:center;">
+          <div style="font-size:0.82rem; color:#64748b; font-weight:800;">رصيد محفظتك المتاح للرحلات</div>
+          <div style="font-size:2.1rem; font-weight:900; color:var(--success); margin:6px 0;"><span id="sec-wallet-balance">0.00</span> ج.م</div>
+          <div style="font-size:0.8rem; color:var(--danger); font-weight:800; margin-bottom:10px;">الغرامات المعلقة: <span id="sec-wallet-penalty">0.00</span> ج.م</div>
+          <p style="font-size:0.78rem; color:#475569; line-height:1.6;">
+            💡 أي مبالغ نقدية إضافية تدفعها للكابتن فوق قيمة الأجرة المطلوبة تُودع تلقائياً في محفظتك كرصيد دائن يمكنك استخدامه في رحلاتك القادمة.
+          </p>
+        </div>
+      </div>
+
+      <!-- 5. قسم كشف الحساب المالي -->
+      <div id="sec-statement" class="drawer-sec-pane" style="display:none;">
+        <div class="card">
+          <input type="text" id="search-cli-stmt-inp" placeholder="🔍 ابحث برقم المرجع أو البيان..." oninput="renderClientStatement()">
+          <div style="overflow-x:auto;">
+            <table>
+              <thead>
+                <tr><th>التاريخ</th><th>المرجع</th><th>البيان</th><th>التأثير</th><th>الرصيد بعد</th><th>إجراء</th></tr>
+              </thead>
+              <tbody id="cli-stmt-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- 7. قسم الإعدادات -->
+      <div id="sec-settings" class="drawer-sec-pane" style="display:none;">
+        <div class="card">
+          <h4 style="color:var(--primary); margin-bottom:8px;">⚙️ بيانات الحساب وكلمة المرور</h4>
+          <label>الاسم المسجل:</label>
+          <input type="text" id="set-cli-name">
+          <label>البريد الإلكتروني:</label>
+          <input type="email" id="set-cli-email">
+          <label>كلمة المرور الجديدة (اتركها فارغة إن لم ترغب بتغييرها):</label>
+          <input type="password" id="set-cli-pass" placeholder="كلمة مرور جديدة">
+          <button class="btn btn-success" onclick="saveClientProfileSettings()">💾 حفظ التعديلات</button>
+        </div>
+      </div>
+
+      <!-- 8. قسم المساعدة والدعم وميثاق الحقوق -->
+      <div id="sec-help" class="drawer-sec-pane" style="display:none;">
+        <div class="card" style="line-height:1.7; font-size:0.82rem;">
+          <h4 style="color:var(--primary); margin-bottom:8px;">❓ المساعدة وميثاق حقوق العميل والكابتن</h4>
+          <p>• <b>الاحترام المتبادل:</b> من حق العميل والكابتن المعاملة الراقية والمحترمة المتبادلة طوال الرحلة.</p>
+          <p>• <b>الرحلة الآمنة:</b> من حقك رحلة آمنة بسيارة نظيفة وذات رائحة طيبة وتلتزم بقواعد المرور.</p>
+          <p>• <b>وسائل السيارة بالتراضي:</b> تشغيل البلوتوث أو الراديو أو التكييف يتم بالتراضي والذوق المشترك وبما لا يشتت انتباه الكابتن.</p>
+          <p>• <b>المفقودات الشخصية:</b> يرجى التأكد من متعلقاتك الشخصية قبل مغادرة السيارة؛ فصاحب السيارة غير مسؤول قانونياً عن المفقودات الشخصية.</p>
+          <button class="btn btn-primary" style="margin-top:10px;" onclick="closeDrawerSectionModal(); openClientMessages();">✉️ تواصل مع فريق الدعم والإدارة</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ================= نافذة التفاصيل المنبثقة المختصرة (Popup Modal) ================= -->
+  <div class="popup-overlay" id="cli-popup-modal">
+    <div class="popup-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid #e2e8f0; padding-bottom:6px;">
+        <b id="cli-popup-title" style="color:var(--primary); font-size:0.9rem;">📄 التفاصيل</b>
+        <button class="btn btn-danger" style="width:auto; padding:4px 10px; font-size:0.74rem;" onclick="document.getElementById('cli-popup-modal').classList.remove('open')">إغلاق ✖</button>
+      </div>
+      <div id="cli-popup-body"></div>
     </div>
   </div>
 
@@ -251,30 +596,37 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { getDatabase, ref, get, set, update, push, remove, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyB5GqPcEhvzHoe45SYYUNL7E9oqVdmVrag",
-      authDomain: "projectlinkst.firebaseapp.com",
-      databaseURL: "https://projectlinkst-default-rtdb.europe-west1.firebasedatabase.app",
-      projectId: "projectlinkst",
-      storageBucket: "projectlinkst.firebasestorage.app",
-      messagingSenderId: "704490160583",
-      appId: "1:704490160583:web:c4031a44ee6ec2fffa99e2"
-    };
-    const app = initializeApp(firebaseConfig);
+    const _0xcfg = JSON.parse(atob("eyJhcGlLZXkiOiJBSXphU3lCNUdxUGNFaHZ6SG9lNDVTWVlVTkx3RTlvcVZkbVZyYWciLCJhdXRoRG9tYWluIjoicHJvamVjdGxpbmtzdC5maXJlYmFzZWFwcC5jb20iLCJkYXRhYmFzZVVSTCI6Imh0dHBzOi8vcHJvamVjdGxpbmtzdC1kZWZhdWx0LXJ0ZGIuZXVyb3BlLXdlc3QxLmZpcmViYXNlZGF0YWJhc2UuYXBwIiwicHJvamVjdElkIjoicHJvamVjdGxpbmtzdCIsInN0b3JhZ2VCdWNrZXQiOiJwcm9qZWN0bGlua3N0LmZpcmViYXNlc3RvcmFnZS5hcHAiLCJtZXNzYWdpbmdTZW5kZXJJZCI6IjcwNDQ5MDE2MDU4MyIsImFwcElkIjoiMTo3MDQ0OTAxNjA1ODM6d2ViOmM0MDMxYTQ0ZWU2ZWMyZmZmYTk5ZTIifQ=="));
+    const app = initializeApp(_0xcfg);
     const db = getDatabase(app);
     mapboxgl.accessToken = "pk.eyJ1IjoibXVoYW1lZGVsaGFtYWxhd3kiLCJhIjoiY212dXZrcDJlMGF2YjM1czVqOGtkbWVldCJ9.yGoETr4LTcLOGbx1_UFc5Q";
 
     const DEFAULT_AVATAR = "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232563eb'><path d='M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z'/></svg>";
 
-    document.addEventListener('click', () => {
-      if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      }
-    }, { once: true });
+    const CATEGORY_META = {
+      private_car: "🚗 سيارة ملاكي",
+      taxi:        "🚕 سيارة أجرة (تاكسي)",
+      motorcycle:  "🏍️ موتوسيكل",
+      scooter:     "🛵 سكوتر",
+      delivery:    "📦 توصيل طلبات"
+    };
 
     let currentClientPhone = localStorage.getItem('smartride_client_phone') || null;
     let settings = {
-      maxRadiusKm: 3, disableRadiusLimit: false,
+      maxRadiusKm: 3,
+      requestTimeoutSec: 15,
+      maxSearchPulseSec: 120,
+      retryWaitSec: 20,
+      parallelDispatchEnabled: true,
+      parallelMaxDrivers: 5,
+      concurrentRidesEnabled: true,
+      concurrentDropoffRadiusKm: 1.0,
+      carColorTierGoldMin: 4.5,
+      carColorTierGreenMin: 3.5,
+      postArrivalCancelFee: 15,
+      penaltySplitMode: 'fixed',
+      penaltyDriverShare: 13,
+      penaltyAdminShare: 2,
       categories: {
         private_car: { name: "🚗 سيارة ملاكي", enabled: true, base: 15, perKm: 7, perMin: 1, minFare: 30 },
         taxi:        { name: "🚕 سيارة أجرة (تاكسي)", enabled: true, base: 12, perKm: 6, perMin: 1, minFare: 25 },
@@ -284,10 +636,119 @@
       }
     };
 
-    let driversDB = {}, clientsDB = {}, ridesDB = {}, messagesDB = {};
-    let pickupCoords = { lat: 30.4660, lng: 31.1848 }, dropoffCoords = null, tempCoords = null;
+    let driversDB = {}, clientsDB = {}, ridesDB = {}, messagesDB = {}, promosDB = {}, transactionsDB = {};
+    let pickupCoords = { lat: 30.4660, lng: 31.1848 };
+    let pickupReadableAddress = "بنها، القليوبية";
+    let dropoffCoords = null;
+    let dropoffReadableAddress = "";
+    let tempCoords = null;
     let mapMode = 'dropoff', selectedCat = 'private_car', myActiveRideId = null;
-    let grace30Timer = null, wait5Timer = null, chosenDrvStars = 5;
+    let activeAppliedPromoCode = null;
+    let grace30Timer = null, searchLoopInterval = null, chosenDrvStars = 5;
+    let currentOpenedThreadId = null;
+    let trackedFamilyRideId = null;
+    let searchDebounceTimer = null;
+
+    // حماية كود التتبع العائلي ضد التخمين (Brute Force Protection)
+    let famFailedAttempts = Number(sessionStorage.getItem('sr_fam_fails') || 0);
+    let famLockoutUntil = Number(sessionStorage.getItem('sr_fam_lock_until') || 0);
+
+    // إنشاء نسخة خريطة واحدة فقط (Single Instance) بخلفية نهارية بيضاء light-v11 وعناصر نصية إنجليزية name_en
+    const sharedMap = new mapboxgl.Map({
+      container: 'shared-map-host',
+      style: 'mapbox://styles/mapbox/light-v11',
+      center: [pickupCoords.lng, pickupCoords.lat],
+      zoom: 14
+    });
+
+    sharedMap.on('style.load', () => {
+      const layers = sharedMap.getStyle().layers || [];
+      layers.forEach(layer => {
+        if (layer.type === 'symbol' && layer.layout && layer.layout['text-field']) {
+          sharedMap.setLayoutProperty(layer.id, 'text-field', ['coalesce', ['get', 'name_en'], ['get', 'name']]);
+        }
+      });
+    });
+
+    let pickMarker = new mapboxgl.Marker({ color: '#dc2626' }).setLngLat([pickupCoords.lng, pickupCoords.lat]).addTo(sharedMap);
+    let dynamicMapMarkers = [];
+
+    function mountSharedMapInto(slotElementId) {
+      const slot = document.getElementById(slotElementId);
+      const host = document.getElementById('shared-map-host');
+      if (slot && host && host.parentElement !== slot) {
+        slot.appendChild(host);
+      }
+      setTimeout(() => sharedMap.resize(), 80);
+    }
+
+    sharedMap.on('click', async (e) => {
+      if (!document.getElementById('map-modal').classList.contains('open')) return;
+      if (mapMode === 'explore') return;
+      tempCoords = { lat: e.lngLat.lat, lng: e.lngLat.lng };
+      pickMarker.setLngLat([tempCoords.lng, tempCoords.lat]);
+    });
+
+    // دالة Reverse Geocoding لقراءة اسم الشارع والمنطقة والمدينة
+    async function reverseGeocodeCoords(lat, lng) {
+      try {
+        const res = await fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${lng},${lat}.json?language=ar&access_token=${mapboxgl.accessToken}`);
+        const data = await res.json();
+        if (data && data.features && data.features.length > 0) {
+          return data.features[0].place_name_ar || data.features[0].place_name;
+        }
+      } catch (e) {}
+      return `موقع محدد (${Number(lat).toFixed(4)}, ${Number(lng).toFixed(4)})`;
+    }
+
+    // البحث النصي الفوري مع الاقتراحات (Autocomplete)
+    window.handlePlaceSearchInput = function(targetType, queryText) {
+      clearTimeout(searchDebounceTimer);
+      const listEl = document.getElementById(targetType === 'pickup' ? 'pickup-autocomplete-list' : 'dropoff-autocomplete-list');
+      if (!queryText || queryText.trim().length < 2) {
+        listEl.style.display = 'none';
+        return;
+      }
+      searchDebounceTimer = setTimeout(async () => {
+        try {
+          const proximity = `${pickupCoords.lng},${pickupCoords.lat}`;
+          const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(queryText.trim())}.json?country=eg&language=ar&proximity=${proximity}&limit=5&access_token=${mapboxgl.accessToken}`;
+          const res = await fetch(url);
+          const data = await res.json();
+          listEl.innerHTML = '';
+          if (data && data.features && data.features.length > 0) {
+            data.features.forEach(feat => {
+              const placeName = feat.place_name_ar || feat.place_name;
+              const [lng, lat] = feat.center;
+              const item = document.createElement('div');
+              item.className = 'autocomplete-item';
+              item.innerText = `📍 ${placeName}`;
+              item.onclick = () => {
+                listEl.style.display = 'none';
+                if (targetType === 'pickup') {
+                  pickupCoords = { lat, lng };
+                  pickupReadableAddress = placeName;
+                  document.getElementById('lbl-pickup').innerText = placeName;
+                  document.getElementById('pickup-search-inp').value = placeName;
+                } else {
+                  dropoffCoords = { lat, lng };
+                  dropoffReadableAddress = placeName;
+                  document.getElementById('lbl-dropoff').innerText = placeName;
+                  document.getElementById('dropoff-search-inp').value = placeName;
+                }
+                updateTripEstimatePreview();
+              };
+              listEl.appendChild(item);
+            });
+            listEl.style.display = 'block';
+          } else {
+            listEl.style.display = 'none';
+          }
+        } catch (e) {
+          listEl.style.display = 'none';
+        }
+      }, 280);
+    };
 
     async function logClientAudit(actionType, details, rideId = null) {
       const payload = {
@@ -306,13 +767,28 @@
         avg = +(arr.reduce((a,b) => a + Number(b.stars||4), 0) / arr.length).toFixed(2);
         lowCnt = arr.filter(x => Number(x.stars) < 3).length;
       }
+      const goldMin = Number(settings.carColorTierGoldMin ?? 4.5);
+      const greenMin = Number(settings.carColorTierGreenMin ?? 3.5);
       let tier = 'tier-green';
-      if (avg >= 4.7) tier = 'tier-gold';
-      else if (avg >= 4.0) tier = 'tier-green';
-      else if (avg >= 3.0) tier = 'tier-orange-red';
-      else tier = 'tier-red';
-      return { avg, label: avg.toFixed(1), tier, lowCnt };
+      let carPinClass = 'car-tier-green';
+      if (avg >= goldMin) { tier = 'tier-gold'; carPinClass = 'car-tier-gold'; }
+      else if (avg >= greenMin) { tier = 'tier-green'; carPinClass = 'car-tier-green'; }
+      else { tier = 'tier-orange-red'; carPinClass = 'car-tier-orange'; }
+      return { avg, label: avg.toFixed(1), tier, carPinClass, lowCnt };
     }
+
+    function showClientPopup(title, rowsArray) {
+      document.getElementById('cli-popup-title').innerText = title;
+      document.getElementById('cli-popup-body').innerHTML = rowsArray.map(([k, v]) =>
+        `<div class="kv-row"><b style="color:#475569;">${k}:</b><span style="font-weight:800; color:var(--dark); text-align:left;">${v ?? '--'}</span></div>`
+      ).join('');
+      document.getElementById('cli-popup-modal').classList.add('open');
+    }
+
+    window.toggleClientDrawer = function(open) {
+      document.getElementById('cli-drawer-backdrop').classList.toggle('open', open);
+      document.getElementById('cli-side-drawer').classList.toggle('open', open);
+    };
 
     window.extractDOB = function(nid) {
       const c = (nid||'').replace(/\D/g,'');
@@ -341,8 +817,10 @@
       localStorage.setItem('smartride_client_phone', ph);
       document.getElementById('auth-screen').style.display = 'none';
       refreshClientUI();
+      validateCurrentClientPromoState();
     };
 
+    // تسجيل عميل جديد وإنشاء رسالة الترحيب وميثاق الحقوق تلقائياً باسمه (🔒 بدون رد) وفتحها فوراً
     window.clientRegister = async function() {
       const name = document.getElementById('reg-name').value.trim();
       const gender = document.getElementById('reg-gender').value;
@@ -355,105 +833,366 @@
       if (!name || !ph || !dob || !ps || !wa) return alert("أكمل كافة البيانات وأكد وجود واتساب!");
       const ex = await get(ref(db, `smartride/clients/${ph}`));
       if (ex.exists()) return alert("رقم الهاتف مسجل مسبقاً!");
+
+      const charterText =
+`مرحباً بك يا ${name} في عائلة تطبيق SmartRide! 🎉
+يسعد فريق SmartRide بانضمامك إلينا، ونتمنى لك دائماً رحلات آمنة ومريحة.
+
+📌 ميثاق الحقوق والواجبات لرحلة مثالية وآمنة:
+1️⃣ المعاملة الراقية المتبادلة: من حقك كعميل الحصول على معاملة محترمة وراقية طوال الرحلة، وكذلك من حق الكابتن أن يُعامل بكل رقي واحترام متبادل.
+2️⃣ حق الرحلة الآمنة: من حقك رحلة آمنة ومباشرة من نقطة الانطلاق إلى نقطة الوصول بسيارة آمنة، نظيفة، وذات رائحة طيبة.
+3️⃣ وسائل السيارة بالتراضي فقط: تشغيل البلوتوث أو الراديو أو التكييف يتم بالتراضي والذوق المشترك مع الكابتن وبما لا يشتت انتباهه أثناء القيادة.
+4️⃣ عدم مسؤولية صاحب السيارة عن المفقودات الشخصية: يرجى التأكد من جميع متعلقاتك الشخصية قبل مغادرة السيارة؛ فأي مفقودات تُنسى داخل السيارة تقع مسؤوليتها على العميل وليس على صاحب السيارة أو التطبيق أي مسؤولية قانونية عن ضياعها.
+
+نتمنى لك تجربة رائعة ورحلات موفقة وآمنة دائماً مع SmartRide! 🚖💙`;
+
+      const mRef = push(ref(db, 'smartride/messages'));
+      const rKey = push(ref(db, `smartride/messages/${mRef.key}/replies`)).key;
+
       await set(ref(db, `smartride/clients/${ph}`), {
         id: ph, phone: ph, name, gender, nationalId: nid, birthDate: dob, email, password: ps,
-        wallet: 0, pendingPenalty: 0, isBlocked: false, createdAt: Date.now()
+        wallet: 0, pendingPenalty: 0, isBlocked: false,
+        welcomeCharterSent: true, welcomeMessageId: mRef.key, welcomeAutoOpened: false,
+        createdAt: Date.now()
       });
+
+      await set(mRef, {
+        id: mRef.key,
+        refNumber: "WEL-" + Math.floor(10000 + Math.random()*90000),
+        userType: 'client',
+        userPhone: ph,
+        userName: name,
+        subject: `👋 أهلاً بك يا ${name} في SmartRide - ميثاق حقوقك لرحلة آمنة`,
+        allowReply: false,
+        isWelcomeCharter: true,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        replies: {
+          [rKey]: {
+            sender: 'admin',
+            senderName: 'فريق إدارة SmartRide',
+            text: charterText,
+            timestamp: Date.now()
+          }
+        }
+      });
+
       currentClientPhone = ph;
       localStorage.setItem('smartride_client_phone', ph);
       document.getElementById('auth-screen').style.display = 'none';
       refreshClientUI();
+
+      await checkAndSendWelcomePromoForNewClient(ph, name);
     };
 
+    async function checkAndSendWelcomePromoForNewClient(phone, name) {
+      const welcomePromo = Object.values(promosDB).find(p =>
+        p && p.targetType === 'client' &&
+        (p.autoNewMode === 'new_client' || p.audience === 'new') &&
+        p.status === 'active' &&
+        checkPromoDateAndQuota(p, phone)
+      );
+      if (welcomePromo) {
+        const uses = Number(welcomePromo.defaultUses || welcomePromo.usesPerUser || 3);
+        await update(ref(db, `smartride/promos/${welcomePromo.code}/qualifiedUsers/${phone}`), {
+          phone, remainingUses: uses, assignedAt: Date.now(), autoWelcome: true
+        });
+        await update(ref(db, `smartride/clients/${phone}/appliedPromos/${welcomePromo.code}`), {
+          code: welcomePromo.code, title: welcomePromo.title, remainingUses: uses, activatedAt: Date.now()
+        });
+      }
+    }
+
     window.logoutClient = function() {
+      if (!confirm("هل أنت متأكد من تسجيل الخروج من حسابك؟")) return;
+      toggleClientDrawer(false);
       localStorage.removeItem('smartride_client_phone');
       currentClientPhone = null;
+      activeAppliedPromoCode = null;
       document.getElementById('auth-screen').style.display = 'flex';
     };
 
-    const pickerMap = new mapboxgl.Map({ container: 'picker-map', style: 'mapbox://styles/mapbox/streets-v12', center: [pickupCoords.lng, pickupCoords.lat], zoom: 14 });
-    let pickMarker = new mapboxgl.Marker({ color: '#dc2626' }).setLngLat([pickupCoords.lng, pickupCoords.lat]).addTo(pickerMap);
-    let exploreMarkers = [];
+    // فحص شروط البرومو كود (أولوية العدد إن كان > 0، وإلا فالتاريخ)
+    function checkPromoDateAndQuota(p, clientPhone) {
+      if (!p || p.status !== 'active') return false;
+      const today = new Date().toISOString().slice(0, 10);
+      if (p.startDate && today < p.startDate) return false;
 
-    pickerMap.on('click', e => {
-      if (mapMode === 'explore') return;
-      tempCoords = { lat: e.lngLat.lat, lng: e.lngLat.lng };
-      pickMarker.setLngLat([tempCoords.lng, tempCoords.lat]);
+      const maxBen = Number(p.maxBeneficiaries ?? p.maxUsers ?? 0);
+      const qUsers = p.qualifiedUsers || {};
+      const alreadyQualified = !!qUsers[clientPhone] || !!(clientsDB[clientPhone]?.appliedPromos?.[p.code]);
+
+      if (maxBen > 0) {
+        const curCount = Object.keys(qUsers).length || Number(p.appliedUsersCount || 0);
+        if (!alreadyQualified && curCount >= maxBen) return false;
+        return true;
+      } else {
+        if (p.endDate && today > p.endDate) return false;
+        return true;
+      }
+    }
+
+    onValue(ref(db, 'smartride/promos'), snap => {
+      promosDB = snap.val() || {};
+      validateCurrentClientPromoState();
     });
 
-    const trackMap = new mapboxgl.Map({ container: 'tracking-map', style: 'mapbox://styles/mapbox/streets-v12', center: [pickupCoords.lng, pickupCoords.lat], zoom: 14 });
-    let trackMarkers = [];
+    window.applyClientPromoCode = async function(isAutoWelcome = false) {
+      if (!currentClientPhone || !clientsDB[currentClientPhone]) return;
+      const code = (document.getElementById('cli-promo-input').value || '').trim().toUpperCase();
+      const statusLbl = document.getElementById('cli-promo-status-lbl');
+      if (!code) return;
 
-    window.openMapModal = function(mode) {
-      mapMode = mode; tempCoords = null;
-      document.getElementById('map-modal').classList.add('open');
-      setTimeout(() => {
-        pickerMap.resize();
-        exploreMarkers.forEach(m => m.remove()); exploreMarkers = [];
-        if (mode === 'explore') {
-          Object.values(driversDB).forEach(d => {
-            if (d.online && !d.isBlocked && d.lat && d.lng) {
-              const st = getRatingStyle(d);
-              const el = document.createElement('div');
-              el.className = 'explore-driver-pin';
-              el.innerHTML = `<div style="font-size:26px;">🚙</div><div class="rate-under ${st.tier}">${d.name} | ⭐ ${st.label}</div>`;
-              exploreMarkers.push(new mapboxgl.Marker(el).setLngLat([d.lng, d.lat]).addTo(pickerMap));
-            }
-          });
-        }
-      }, 100);
-    };
-
-    window.closeMapModal = function(save) {
-      document.getElementById('map-modal').classList.remove('open');
-      if (!save || !tempCoords || mapMode === 'explore') return;
-      if (mapMode === 'pickup') {
-        pickupCoords = tempCoords;
-        document.getElementById('lbl-pickup').innerText = `محدد عالخريطة (${pickupCoords.lat.toFixed(4)}, ${pickupCoords.lng.toFixed(4)})`;
-      } else {
-        dropoffCoords = tempCoords;
-        document.getElementById('lbl-dropoff').innerText = `تم تحديد الوجهة عالخريطة`;
+      const p = promosDB[code];
+      if (!p || p.targetType !== 'client') {
+        statusLbl.style.color = 'var(--danger)';
+        statusLbl.innerText = '❌ كود غير صحيح';
+        activeAppliedPromoCode = null;
+        return;
       }
+
+      const cObj = clientsDB[currentClientPhone];
+      const userPromoRecord = cObj.appliedPromos?.[code] || p.qualifiedUsers?.[currentClientPhone];
+
+      if (!checkPromoDateAndQuota(p, currentClientPhone) || (userPromoRecord && Number(userPromoRecord.remainingUses || 0) <= 0)) {
+        statusLbl.style.color = 'var(--danger)';
+        statusLbl.innerText = 'انتهت صلاحية هذا العرض';
+        activeAppliedPromoCode = null;
+        return;
+      }
+
+      let remUses = userPromoRecord ? Number(userPromoRecord.remainingUses) : Number(p.defaultUses || p.usesPerUser || 3);
+      if (!userPromoRecord) {
+        await update(ref(db, `smartride/clients/${currentClientPhone}/appliedPromos/${code}`), {
+          code, title: p.title, remainingUses: remUses, activatedAt: Date.now()
+        });
+        await update(ref(db, `smartride/promos/${code}/qualifiedUsers/${currentClientPhone}`), {
+          phone: currentClientPhone, remainingUses: remUses, assignedAt: Date.now()
+        });
+      }
+
+      activeAppliedPromoCode = code;
+      statusLbl.style.color = 'var(--success)';
+      statusLbl.innerText = `✅ ${p.title} (متبقي ${remUses})`;
+      updateTripEstimatePreview();
+      await logClientAudit(isAutoWelcome ? "تفعيل تلقائي لبرومو ترحيبي" : "تفعيل بروموكود", `الكود: ${code} (${p.title})`);
     };
 
-    window.clearDropoff = function() {
-      dropoffCoords = null;
-      document.getElementById('lbl-dropoff').innerText = "مفتوحة (تُحسب بالعداد أثناء السير)";
+    function validateCurrentClientPromoState() {
+      if (!currentClientPhone || !clientsDB[currentClientPhone]) return;
+      const cObj = clientsDB[currentClientPhone];
+      const inp = document.getElementById('cli-promo-input');
+      const statusLbl = document.getElementById('cli-promo-status-lbl');
+      if (!inp || !statusLbl) return;
+
+      let code = (inp.value || activeAppliedPromoCode || '').trim().toUpperCase();
+      if (!code && cObj.appliedPromos) {
+        const activeSaved = Object.values(cObj.appliedPromos).find(x => x && Number(x.remainingUses || 0) > 0);
+        if (activeSaved) code = activeSaved.code;
+      }
+      if (!code || !promosDB[code]) return;
+
+      const p = promosDB[code];
+      const rec = cObj.appliedPromos?.[code] || p.qualifiedUsers?.[currentClientPhone];
+
+      if (!checkPromoDateAndQuota(p, currentClientPhone) || (rec && Number(rec.remainingUses || 0) <= 0)) {
+        inp.value = code;
+        statusLbl.style.color = 'var(--danger)';
+        statusLbl.innerText = 'انتهت صلاحية هذا العرض';
+        activeAppliedPromoCode = null;
+      } else if (rec && Number(rec.remainingUses || 0) > 0) {
+        activeAppliedPromoCode = code;
+        inp.value = code;
+        statusLbl.style.color = 'var(--success)';
+        statusLbl.innerText = `✅ ${p.title} (متبقي ${rec.remainingUses})`;
+      }
+    }
+
+    // شاشة الرحلة المستقلة وتحديد GPS تلقائياً عند الضغط على "بدء رحلة جديدة الآن"
+    window.openIndependentTripScreen = function() {
+      const catObj = settings.categories?.[selectedCat] || {};
+      document.getElementById('selected-cat-readonly').value = catObj.name || CATEGORY_META[selectedCat] || '🚗 سيارة ملاكي';
+      document.getElementById('independent-trip-modal').classList.add('open');
+      detectClientGPS();
+      updateTripEstimatePreview();
+    };
+
+    window.closeIndependentTripScreen = function() {
+      document.getElementById('independent-trip-modal').classList.remove('open');
     };
 
     window.detectClientGPS = function() {
       if (!navigator.geolocation) return;
-      navigator.geolocation.getCurrentPosition(pos => {
+      document.getElementById('lbl-pickup').innerText = "🛰️ جاري تحديد موقعك وقراءة اسم الشارع...";
+      navigator.geolocation.getCurrentPosition(async pos => {
         pickupCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-        document.getElementById('lbl-pickup').innerText = `تلقائي GPS (${pickupCoords.lat.toFixed(4)}, ${pickupCoords.lng.toFixed(4)})`;
-      });
+        pickupReadableAddress = await reverseGeocodeCoords(pickupCoords.lat, pickupCoords.lng);
+        document.getElementById('lbl-pickup').innerText = pickupReadableAddress;
+        document.getElementById('pickup-search-inp').value = pickupReadableAddress;
+        updateTripEstimatePreview();
+      }, async () => {
+        pickupReadableAddress = await reverseGeocodeCoords(pickupCoords.lat, pickupCoords.lng);
+        document.getElementById('lbl-pickup').innerText = pickupReadableAddress;
+      }, { enableHighAccuracy: true, timeout: 6000 });
     };
 
-    // عرض بطاقات أنواع المركبات فقط (بدون أي حسابات أو أسعار) مع إخفاء أي فئة أوقفتها الإدارة
+    window.clearDropoff = function() {
+      dropoffCoords = null;
+      dropoffReadableAddress = "";
+      document.getElementById('dropoff-search-inp').value = "";
+      document.getElementById('lbl-dropoff').innerText = "«سيتم تحديد سعر الرحلة عند الوصول إلى وجهتك.»";
+      updateTripEstimatePreview();
+    };
+
+    function updateTripEstimatePreview() {
+      const banner = document.getElementById('trip-estimate-banner');
+      if (!banner) return;
+      if (!dropoffCoords) {
+        banner.innerHTML = `💡 <b style="color:var(--primary);">«سيتم تحديد سعر الرحلة عند الوصول إلى وجهتك.»</b>`;
+        return;
+      }
+      const distKm = +haversineKm(pickupCoords.lat, pickupCoords.lng, dropoffCoords.lat, dropoffCoords.lng).toFixed(2);
+      const catCfg = settings.categories?.[selectedCat] || { base: 15, perKm: 7, perMin: 1, minFare: 30 };
+      const estMin = Math.max(2, Math.round(distKm * 2.2));
+      const estFare = Math.max(Number(catCfg.minFare || 30), Math.round(Number(catCfg.base || 15) + distKm * Number(catCfg.perKm || 7) + estMin * Number(catCfg.perMin || 1)));
+      banner.innerHTML = `📏 المسافة التقديرية: <b>${distKm} كم</b> | ⏱️ الزمن: <b>~${estMin} د</b> | 💵 السعر التقديري: <b style="color:var(--success);">${estFare} ج.م</b>`;
+    }
+
+    // فتح الخريطة التفاعلية (باستخدام نفس النسخة الوحيدة sharedMap)
+    window.openInteractiveMapPicker = function(mode) {
+      mapMode = mode;
+      tempCoords = mode === 'pickup' ? { ...pickupCoords } : (dropoffCoords ? { ...dropoffCoords } : { ...pickupCoords });
+      document.getElementById('map-modal').classList.add('open');
+      mountSharedMapInto('modal-map-slot');
+
+      document.getElementById('map-modal-title').innerText =
+        mode === 'explore' ? '📡 الكباتن المتاحون حولك (ملونون حسب فئة التقييم)' :
+        (mode === 'pickup' ? '🟢 اضغط على الخريطة لتحديد نقطة الانطلاق' : '🏁 اضغط على الخريطة لتحديد وجهة الوصول');
+
+      document.getElementById('btn-confirm-map-point').style.display = mode === 'explore' ? 'none' : 'inline-flex';
+
+      setTimeout(() => {
+        sharedMap.resize();
+        sharedMap.flyTo({ center: [tempCoords.lng, tempCoords.lat], zoom: 14 });
+        pickMarker.setLngLat([tempCoords.lng, tempCoords.lat]);
+        renderDriversCarsOnSharedMap();
+      }, 100);
+    };
+
+    // رسم سيارات الكباتن على خريطة العميل كأيقونة سيارة فقط بدون اسم الكابتن وبدون تقييمه وبلون فئة التقييم
+    function renderDriversCarsOnSharedMap() {
+      dynamicMapMarkers.forEach(m => m.remove());
+      dynamicMapMarkers = [];
+      Object.values(driversDB).forEach(d => {
+        if (d && d.online && !d.isBlocked && d.lat && d.lng) {
+          const st = getRatingStyle(d);
+          const el = document.createElement('div');
+          el.className = `car-tier-marker ${st.carPinClass}`;
+          el.innerText = '🚕';
+          dynamicMapMarkers.push(new mapboxgl.Marker(el).setLngLat([d.lng, d.lat]).addTo(sharedMap));
+        }
+      });
+    }
+
+    window.closeMapModal = async function(save) {
+      document.getElementById('map-modal').classList.remove('open');
+      if (!save || !tempCoords || mapMode === 'explore') return;
+      const readable = await reverseGeocodeCoords(tempCoords.lat, tempCoords.lng);
+      if (mapMode === 'pickup') {
+        pickupCoords = { ...tempCoords };
+        pickupReadableAddress = readable;
+        document.getElementById('lbl-pickup').innerText = readable;
+        document.getElementById('pickup-search-inp').value = readable;
+      } else {
+        dropoffCoords = { ...tempCoords };
+        dropoffReadableAddress = readable;
+        document.getElementById('lbl-dropoff').innerText = readable;
+        document.getElementById('dropoff-search-inp').value = readable;
+      }
+      updateTripEstimatePreview();
+    };
+
     function renderCategories() {
       const grid = document.getElementById('categories-grid');
+      if (!grid) return;
       grid.innerHTML = '';
+      const enabledKeys = [];
       Object.entries(settings.categories || {}).forEach(([k, c]) => {
-        if (c.enabled === false) return; // متوقف من شاشة التحكم
+        if (c && c.enabled !== false) enabledKeys.push(k);
+      });
+      if (enabledKeys.length > 0 && !enabledKeys.includes(selectedCat)) {
+        selectedCat = enabledKeys[0];
+      }
+      enabledKeys.forEach(k => {
+        const c = settings.categories[k];
         const div = document.createElement('div');
         div.className = `cat-item ${selectedCat === k ? 'selected' : ''}`;
-        div.onclick = () => { selectedCat = k; renderCategories(); };
-        div.innerText = c.name;
+        div.onclick = () => { selectedCat = k; renderCategories(); updateTripEstimatePreview(); };
+        div.innerText = c.name || CATEGORY_META[k] || k;
         grid.appendChild(div);
       });
     }
 
-    onValue(ref(db, 'smartride/settings'), snap => { if (snap.exists()) settings = snap.val(); renderCategories(); });
-    onValue(ref(db, 'smartride/drivers'), snap => { driversDB = snap.val() || {}; updateActiveTripView(); });
+    // المستمعات اللحظية
+    onValue(ref(db, 'smartride/settings'), snap => {
+      if (snap.exists()) settings = { ...settings, ...snap.val() };
+      renderCategories();
+    });
+    onValue(ref(db, 'smartride/drivers'), snap => {
+      driversDB = snap.val() || {};
+      updateActiveTripView();
+      if (document.getElementById('map-modal').classList.contains('open')) renderDriversCarsOnSharedMap();
+    });
     onValue(ref(db, 'smartride/clients'), snap => {
       clientsDB = snap.val() || {};
       if (currentClientPhone && clientsDB[currentClientPhone]) {
         document.getElementById('auth-screen').style.display = 'none';
         refreshClientUI();
+        validateCurrentClientPromoState();
       }
     });
-    onValue(ref(db, 'smartride/rides'), snap => { ridesDB = snap.val() || {}; updateActiveTripView(); });
-    onValue(ref(db, 'smartride/messages'), snap => { messagesDB = snap.val() || {}; renderCliThreads(); });
+    onValue(ref(db, 'smartride/rides'), snap => {
+      ridesDB = snap.val() || {};
+      updateActiveTripView();
+      if (trackedFamilyRideId) updateTrackedFamilyView();
+    });
+    onValue(ref(db, 'smartride/transactions'), snap => {
+      transactionsDB = snap.val() || {};
+      if (document.getElementById('drawer-section-modal').classList.contains('open')) renderClientStatement();
+    });
+
+    // الاستماع لرسائل العميل + فتح رسالة الترحيب وميثاق الحقوق تلقائياً في أول مرة يفتح حسابه
+    onValue(ref(db, 'smartride/messages'), snap => {
+      messagesDB = snap.val() || {};
+      renderCliThreads();
+      if (currentOpenedThreadId && messagesDB[currentOpenedThreadId]) {
+        openClientMessageDetail(currentOpenedThreadId);
+      }
+      if (!currentClientPhone) return;
+
+      const cObj = clientsDB[currentClientPhone];
+      Object.values(messagesDB).forEach(msg => {
+        if (!msg || msg.userPhone !== currentClientPhone) return;
+
+        // التفعيل التلقائي لبرومو الترحيب
+        if ((msg.subject === 'Welcome Promo' || msg.subject === 'Promo') && msg.promoCodeAttached && !msg.autoProcessed) {
+          update(ref(db, `smartride/messages/${msg.id}`), { autoProcessed: true });
+          const inp = document.getElementById('cli-promo-input');
+          if (inp) {
+            inp.value = msg.promoCodeAttached;
+            applyClientPromoCode(true);
+          }
+        }
+
+        // فتح رسالة الترحيب وميثاق الحقوق تلقائياً على شاشة العميل الجديد في أول مرة يفتح حسابه
+        if (msg.isWelcomeCharter && !msg.seenOnFirstOpen && (!cObj || !cObj.welcomeAutoOpened)) {
+          update(ref(db, `smartride/messages/${msg.id}`), { seenOnFirstOpen: true });
+          update(ref(db, `smartride/clients/${currentClientPhone}`), { welcomeAutoOpened: true });
+          document.getElementById('cli-messages-modal').classList.add('open');
+          openClientMessageDetail(msg.id);
+        }
+      });
+    });
 
     function refreshClientUI() {
       const c = clientsDB[currentClientPhone];
@@ -462,11 +1201,124 @@
       document.getElementById('hdr-client-badge').className = `rating-frame ${st.tier}`;
       document.getElementById('hdr-client-name').innerText = c.name;
       document.getElementById('hdr-client-rating').innerText = st.label;
-      document.getElementById('hdr-wallet').innerText = c.wallet ?? 0;
+
+      const wVal = Number(c.wallet || 0).toFixed(2);
+      document.getElementById('hdr-wallet').innerText = wVal;
+      document.getElementById('home-welcome-name').innerText = c.name;
+      document.getElementById('home-wallet-val').innerText = wVal;
+      document.getElementById('drw-cli-name').innerText = c.name;
+      document.getElementById('drw-cli-wallet').innerText = `المحفظة: ${wVal} ج.م`;
+
       const pen = Number(c.pendingPenalty || 0);
       document.getElementById('penalty-notice').style.display = pen > 0 ? 'block' : 'none';
       document.getElementById('pen-val').innerText = pen;
       document.getElementById('btn-request').disabled = !!c.isBlocked;
+    }
+
+    // ================= محرك التوزيع الذكي (المتاحون ⬅️ رحلة متزامنة ضمن 1 كم ⬅️ انتظار 20 ثانية ⬅️ إلغاء تلقائي بعد 120 ثانية) =================
+    function buildCandidateDispatchPatch(pickupPt, categoryKey) {
+      const maxR = Number(settings.maxRadiusKm) || 3;
+      const ignoreRad = !!settings.disableRadiusLimit;
+      const parallelEnabled = settings.parallelDispatchEnabled !== false;
+      const parallelMax = Number(settings.parallelMaxDrivers || 5);
+      const concurrentEnabled = settings.concurrentRidesEnabled !== false;
+      const concurrentRadiusKm = Number(settings.concurrentDropoffRadiusKm || 1.0);
+
+      // تحديد الكباتن المشغولين حالياً
+      const busyDriverMap = {};
+      Object.values(ridesDB).forEach(r => {
+        if (!r || !r.driverId) return;
+        if (['accepted', 'arrived', 'in_progress', 'queued_next'].includes(r.status)) {
+          busyDriverMap[r.driverId] = r;
+        }
+      });
+
+      // 1. البحث أولاً عن الكباتن الفاضين المتاحين داخل نطاق البحث
+      const freeCandidates = [];
+      Object.values(driversDB).forEach(d => {
+        if (!d || !d.online || d.isBlocked || d.category !== categoryKey || !d.lat || !d.lng) return;
+        if (busyDriverMap[d.id]) return;
+        const dist = haversineKm(pickupPt.lat, pickupPt.lng, d.lat, d.lng);
+        if (ignoreRad || dist <= maxR) {
+          const st = getRatingStyle(d);
+          freeCandidates.push({ id: d.id, name: d.name, distKm: +dist.toFixed(3), rating: st.avg });
+        }
+      });
+
+      freeCandidates.sort((a, b) => (b.rating !== a.rating) ? (b.rating - a.rating) : (a.distKm - b.distKm));
+
+      if (freeCandidates.length > 0) {
+        if (parallelEnabled) {
+          const chosen = freeCandidates.slice(0, parallelMax);
+          const parallelMap = {};
+          chosen.forEach(c => { parallelMap[c.id] = 'pending'; });
+          return {
+            found: true,
+            isChainedOffer: false,
+            dispatchMode: 'parallel',
+            parallelOfferedDrivers: parallelMap,
+            candidateQueue: chosen,
+            currentCandidateIndex: 0,
+            offeredToDriverId: chosen[0].id
+          };
+        } else {
+          return {
+            found: true,
+            isChainedOffer: false,
+            dispatchMode: 'sequential',
+            parallelOfferedDrivers: null,
+            candidateQueue: freeCandidates,
+            currentCandidateIndex: 0,
+            offeredToDriverId: freeCandidates[0].id
+          };
+        }
+      }
+
+      // 2. إذا لم يوجد كابتن فاضٍ: فحص الكباتن الذين معهم رحلة جارية (in_progress) وتقع نقطة وصولها في حدود 1 كم من العميل الجديد (بغض النظر عن تقييد المسافة في لوحة التحكم)
+      if (concurrentEnabled) {
+        const chainedCandidates = [];
+        Object.values(ridesDB).forEach(activeR => {
+          if (!activeR || activeR.status !== 'in_progress' || !activeR.driverId) return;
+          if (!activeR.dropoff || !activeR.dropoff.lat || !activeR.dropoff.lng) return;
+          const drv = driversDB[activeR.driverId];
+          if (!drv || !drv.online || drv.isBlocked || drv.category !== categoryKey) return;
+
+          // عدم إرسال رحلة متزامنة ثالثة إذا كان لدى الكابتن بالفعل queued_next
+          const hasQueuedAlready = Object.values(ridesDB).some(x => x && x.driverId === drv.id && x.status === 'queued_next');
+          if (hasQueuedAlready) return;
+
+          const dropToNewPickupKm = haversineKm(activeR.dropoff.lat, activeR.dropoff.lng, pickupPt.lat, pickupPt.lng);
+          if (dropToNewPickupKm <= concurrentRadiusKm) {
+            const remToDropKm = (drv.lat && drv.lng) ? haversineKm(drv.lat, drv.lng, activeR.dropoff.lat, activeR.dropoff.lng) : 1.2;
+            const estFinishMin = Math.max(2, Math.round(remToDropKm * 2.4));
+            const st = getRatingStyle(drv);
+            chainedCandidates.push({
+              id: drv.id,
+              name: drv.name,
+              distKm: +dropToNewPickupKm.toFixed(3),
+              rating: st.avg,
+              estFinishMin
+            });
+          }
+        });
+
+        chainedCandidates.sort((a, b) => (b.rating !== a.rating) ? (b.rating - a.rating) : (a.distKm - b.distKm));
+
+        if (chainedCandidates.length > 0) {
+          return {
+            found: true,
+            isChainedOffer: true,
+            chainedEstFinishMin: chainedCandidates[0].estFinishMin,
+            dispatchMode: 'sequential',
+            parallelOfferedDrivers: null,
+            candidateQueue: chainedCandidates,
+            currentCandidateIndex: 0,
+            offeredToDriverId: chainedCandidates[0].id
+          };
+        }
+      }
+
+      return { found: false };
     }
 
     window.submitRideRequest = async function() {
@@ -474,86 +1326,216 @@
       const c = clientsDB[currentClientPhone];
       if (c.isBlocked) return alert("حسابك محظور!");
 
-      const ignoreRad = !!settings.disableRadiusLimit;
-      const maxR = Number(settings.maxRadiusKm) || 3;
-      const queue = [];
-      Object.values(driversDB).forEach(d => {
-        if (d.online && !d.isBlocked && d.category === selectedCat && d.lat && d.lng) {
-          const dist = haversineKm(pickupCoords.lat, pickupCoords.lng, d.lat, d.lng);
-          if (ignoreRad || dist <= maxR) queue.push({ id: d.id, name: d.name, distKm: +dist.toFixed(2) });
-        }
-      });
-      queue.sort((a,b) => a.distKm - b.distKm);
-      if (queue.length === 0) return alert("لا يوجد كابتن متاح من هذه الفئة حالياً!");
+      if (!pickupReadableAddress || pickupReadableAddress.includes('جاري')) {
+        pickupReadableAddress = await reverseGeocodeCoords(pickupCoords.lat, pickupCoords.lng);
+      }
 
+      const estDistKm = dropoffCoords ? +haversineKm(pickupCoords.lat, pickupCoords.lng, dropoffCoords.lat, dropoffCoords.lng).toFixed(2) : 0;
+      const catCfg = settings.categories?.[selectedCat] || { base: 15, perKm: 7, perMin: 1, minFare: 30 };
+      const estFare = dropoffCoords
+        ? Math.max(Number(catCfg.minFare || 30), Math.round(Number(catCfg.base || 15) + estDistKm * Number(catCfg.perKm || 7)))
+        : Number(catCfg.base || 15);
+
+      const now = Date.now();
+      const maxSearchSec = Number(settings.maxSearchPulseSec || 120);
+      const retrySec = Number(settings.retryWaitSec || 20);
       const code = "SR-" + Math.floor(1000 + Math.random()*9000);
+      const famCode = "FAM-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+
+      const dispatchInfo = buildCandidateDispatchPatch(pickupCoords, selectedCat);
+
       const rRef = push(ref(db, 'smartride/rides'));
       myActiveRideId = rRef.key;
 
-      await set(rRef, {
-        id: myActiveRideId, safetyCode: code,
-        clientId: currentClientPhone, clientPhone: currentClientPhone, clientName: c.name,
+      const ridePayload = {
+        id: myActiveRideId,
+        safetyCode: code,
+        familyTrackingCode: famCode,
+        clientId: currentClientPhone,
+        clientPhone: currentClientPhone,
+        clientName: c.name,
         paymentMethod: document.getElementById('payment-method').value,
-        category: selectedCat, pickup: pickupCoords, dropoff: dropoffCoords || null,
+        category: selectedCat,
+        pickup: { ...pickupCoords, address: pickupReadableAddress },
+        pickupAddress: pickupReadableAddress,
+        dropoff: dropoffCoords ? { ...dropoffCoords, address: dropoffReadableAddress } : null,
+        dropoffAddress: dropoffCoords ? dropoffReadableAddress : 'تحدد عند الوصول بالعداد',
         hasPredefinedDest: !!dropoffCoords,
-        liveDistKm: 0, liveWaitMin: 0, liveFare: settings.categories?.[selectedCat]?.base || 15,
-        status: 'offering', candidateQueue: queue, currentCandidateIndex: 0,
-        offeredToDriverId: queue[0].id, createdAt: Date.now()
-      });
-      await logClientAudit("طلب رحلة جديدة", `طلب العميل مركبة فئة (${selectedCat})`, myActiveRideId);
+        estimatedDistanceKm: estDistKm,
+        estimatedFare: estFare,
+        appliedPromoCode: activeAppliedPromoCode || null,
+        liveDistKm: 0,
+        liveWaitMin: 0,
+        liveFare: estFare,
+        createdAt: now,
+        radarExpiresAt: now + (maxSearchSec * 1000),
+        clientRequestPoint: { lat: pickupCoords.lat, lng: pickupCoords.lng, timestamp: now }
+      };
+
+      if (dispatchInfo.found) {
+        Object.assign(ridePayload, {
+          status: 'offering',
+          isChainedOffer: dispatchInfo.isChainedOffer,
+          chainedEstFinishMin: dispatchInfo.chainedEstFinishMin || null,
+          dispatchMode: dispatchInfo.dispatchMode,
+          parallelOfferedDrivers: dispatchInfo.parallelOfferedDrivers || null,
+          candidateQueue: dispatchInfo.candidateQueue,
+          currentCandidateIndex: 0,
+          offeredToDriverId: dispatchInfo.offeredToDriverId
+        });
+      } else {
+        // 3. إذا لم يتوفر كابتن: تظل نفس الرحلة الأصلية في حالة بحث لمدة 20 ثانية مع إشعار الكباتن القريبين وإعادة الفحص كل 20 ثانية
+        Object.assign(ridePayload, {
+          status: 'searching_wait_20s',
+          offeredToDriverId: null,
+          nextRetryAt: now + (retrySec * 1000)
+        });
+      }
+
+      await set(rRef, ridePayload);
+      closeIndependentTripScreen();
+      startSearchSupervisorLoop();
+      await logClientAudit("طلب رحلة جديدة", `الفئة: ${selectedCat} | كود العائلة: ${famCode}`, myActiveRideId);
     };
+
+    // مراقب دورة الـ 20 ثانية ومهلة الدقيقتين (120 ثانية) للإلغاء التلقائي (auto_cancelled_timeout)
+    function startSearchSupervisorLoop() {
+      clearInterval(searchLoopInterval);
+      searchLoopInterval = setInterval(async () => {
+        if (!myActiveRideId || !ridesDB[myActiveRideId]) {
+          clearInterval(searchLoopInterval);
+          return;
+        }
+        const r = ridesDB[myActiveRideId];
+        if (!['offering', 'searching_wait_20s'].includes(r.status)) {
+          clearInterval(searchLoopInterval);
+          return;
+        }
+
+        const now = Date.now();
+        const maxSearchMs = (Number(settings.maxSearchPulseSec || 120)) * 1000;
+        const expiresAt = r.radarExpiresAt || ((r.createdAt || now) + maxSearchMs);
+
+        // 4. مهلة الدقيقتين (120 ثانية): إلغاء تلقائي إذا لم يُقبل الطلب
+        if (now >= expiresAt) {
+          clearInterval(searchLoopInterval);
+          await update(ref(db, `smartride/rides/${myActiveRideId}`), {
+            status: 'auto_cancelled_timeout',
+            cancelledAt: now
+          });
+          alert("⏱️ انتهت مهلة البحث (دقيقتان) دون توفر كابتن متاح في نطاقك حالياً، وتم إلغاء الطلب تلقائياً.");
+          myActiveRideId = null;
+          document.getElementById('home-clean-card').style.display = 'block';
+          document.getElementById('active-trip-card').style.display = 'none';
+          return;
+        }
+
+        // إعادة الفحص كل 20 ثانية على نفس الرحلة الأصلية دون تكرار الطلب
+        if (r.status === 'searching_wait_20s') {
+          const banner = document.getElementById('trip-status-banner');
+          const remTotalSec = Math.max(0, Math.ceil((expiresAt - now) / 1000));
+          const remRetrySec = Math.max(0, Math.ceil(((r.nextRetryAt || now) - now) / 1000));
+          if (banner) {
+            banner.innerText = `📡 جاري إشعار الكباتن القريبين منك بالاقتراب... إعادة الفحص خلال (${remRetrySec} ث) — مهلة البحث المتبقية (${remTotalSec} ث)`;
+          }
+
+          if (now >= (r.nextRetryAt || 0)) {
+            const patch = buildCandidateDispatchPatch(r.pickup, r.category);
+            if (patch.found) {
+              await update(ref(db, `smartride/rides/${myActiveRideId}`), {
+                status: 'offering',
+                isChainedOffer: patch.isChainedOffer,
+                chainedEstFinishMin: patch.chainedEstFinishMin || null,
+                dispatchMode: patch.dispatchMode,
+                parallelOfferedDrivers: patch.parallelOfferedDrivers || null,
+                candidateQueue: patch.candidateQueue,
+                currentCandidateIndex: 0,
+                offeredToDriverId: patch.offeredToDriverId
+              });
+            } else {
+              const retrySec = Number(settings.retryWaitSec || 20);
+              await update(ref(db, `smartride/rides/${myActiveRideId}`), {
+                nextRetryAt: now + (retrySec * 1000)
+              });
+            }
+          }
+        }
+      }, 1000);
+    }
 
     function updateActiveTripView() {
       if (!currentClientPhone) return;
       if (!myActiveRideId) {
-        const f = Object.values(ridesDB).find(r => r.clientId === currentClientPhone && !['completed','cancelled_no_show','cancelled_by_driver','cancelled_by_client'].includes(r.status) && !r.clientClosedInvoice);
-        if (f) myActiveRideId = f.id;
+        const f = Object.values(ridesDB).find(r =>
+          r && r.clientId === currentClientPhone &&
+          !['completed', 'cancelled_no_show', 'cancelled_by_driver', 'cancelled_by_client', 'auto_cancelled_timeout'].includes(r.status) &&
+          !r.clientClosedInvoice
+        );
+        if (f) {
+          myActiveRideId = f.id;
+          if (['offering', 'searching_wait_20s'].includes(f.status)) startSearchSupervisorLoop();
+        }
       }
       if (!myActiveRideId || !ridesDB[myActiveRideId]) return;
       const r = ridesDB[myActiveRideId];
 
-      document.getElementById('booking-card').style.display = 'none';
+      document.getElementById('home-clean-card').style.display = 'none';
       document.getElementById('active-trip-card').style.display = 'block';
       const banner = document.getElementById('trip-status-banner');
       const drvBox = document.getElementById('driver-info-box');
-      const mapWrap = document.getElementById('tracking-map-wrap');
+      const mapSlot = document.getElementById('active-tracking-map-slot');
+      const famStrip = document.getElementById('family-share-strip');
 
       if (r.status === 'offering') {
-        banner.innerText = "⏳ جاري البحث عن أقرب كابتن وتوجيه الطلب...";
-        drvBox.style.display = 'none'; mapWrap.style.display = 'none';
-      } else if (r.status === 'no_drivers') {
-        alert("لم يقبل أي كابتن الطلب حالياً.");
-        remove(ref(db, `smartride/rides/${r.id}`));
-        myActiveRideId = null;
-        document.getElementById('booking-card').style.display = 'block';
-        document.getElementById('active-trip-card').style.display = 'none';
-      } else if (['accepted','arrived','in_progress'].includes(r.status)) {
+        banner.innerText = "⏳ جاري توجيه طلبك لأفضل كابتن متاح في نطاقك...";
+        drvBox.style.display = 'none';
+        mapSlot.style.display = 'none';
+        famStrip.style.display = 'none';
+      } else if (r.status === 'searching_wait_20s') {
+        drvBox.style.display = 'none';
+        mapSlot.style.display = 'none';
+        famStrip.style.display = 'none';
+      } else if (['accepted', 'queued_next', 'arrived', 'in_progress'].includes(r.status)) {
         const drv = driversDB[r.driverId] || {};
         const st = getRatingStyle(drv);
-        const dist = drv.lat ? haversineKm(drv.lat, drv.lng, r.pickup.lat, r.pickup.lng).toFixed(2) : '0.0';
+        const dist = drv.lat ? haversineKm(drv.lat, drv.lng, r.pickup.lat, r.pickup.lng).toFixed(2) : '0.4';
+        const etaMin = Math.max(1, Math.round(Number(dist) * 2.3));
 
         drvBox.style.display = 'block';
-        mapWrap.style.display = 'block';
+        mapSlot.style.display = 'block';
+        famStrip.style.display = 'flex';
+        document.getElementById('active-fam-code').innerText = r.familyTrackingCode || 'FAM-ACTIVE';
+
         document.getElementById('ui-drv-photo').src = drv.photoUrl || DEFAULT_AVATAR;
         document.getElementById('ui-drv-badge').className = `rating-frame ${st.tier}`;
         document.getElementById('ui-drv-name').innerText = drv.name || r.driverName;
         document.getElementById('ui-drv-rate').innerText = st.label;
         document.getElementById('ui-drv-plate').innerText = drv.carPlate || '';
         document.getElementById('ui-drv-car').innerText = `🚗 ${drv.carModel || ''} (${drv.carColor || ''})`;
-        document.getElementById('ui-drv-phone').innerText = drv.phone || r.driverId;
 
-        // إظهار حالة الكابتن ومكانه الحالي للعميل لحظياً
-        if (r.status === 'accepted') {
-          banner.innerText = "🚙 الكابتن في الطريق إليك الآن!";
-          document.getElementById('ui-drv-live-loc').innerText = `📍 موقع الكابتن الآن: يبعد عنك ${dist} كم (${drv.lat?.toFixed(4)||''}, ${drv.lng?.toFixed(4)||''})`;
+        if (r.status === 'queued_next') {
+          const finMin = r.chainedEstFinishMin || 4;
+          banner.innerText = `«تم قبول طلبك! الكابتن ينهي رحلة حالية قريبة منك ستنتهي في غضون (${finMin} دقائق) بناءً على موقعه الحالي ومكان وصوله، وسيتحرك إليك مباشرة فور انتهائها.»`;
+          document.getElementById('ui-drv-eta').innerText = `⏱️ ينهي رحلة قريبة خلال ~${finMin} دقائق ثم يتحرك إليك`;
+          document.getElementById('ui-drv-live-loc').innerText = `📍 نقطة انتهاء رحلته الحالية تقع في حدود 1 كم منك`;
+          run30SecCancelGrace(r.acceptedAt);
+        } else if (r.status === 'accepted') {
+          banner.innerText = r.isChainedOffer
+            ? `«تم قبول طلبك! الكابتن ينهي رحلة حالية قريبة منك ستنتهي في غضون (${r.chainedEstFinishMin || etaMin} دقائق) بناءً على موقعه الحالي ومكان وصوله، وسيتحرك إليك مباشرة فور انتهائها.»`
+            : "🚙 الكابتن في الطريق إليك الآن!";
+          document.getElementById('ui-drv-eta').innerText = `⏱️ الوقت المتوقع للوصول (ETA): ~${etaMin} دقائق`;
+          document.getElementById('ui-drv-live-loc').innerText = `📍 يبعد عنك الآن: ${dist} كم`;
           run30SecCancelGrace(r.acceptedAt);
         } else if (r.status === 'arrived') {
           banner.innerText = "📍 الكابتن وصل لمكانك وبانتظارك!";
-          document.getElementById('ui-drv-live-loc').innerText = `📍 الكابتن متواجد عند نقطة انطلاقك الآن`;
+          document.getElementById('ui-drv-eta').innerText = `⏱️ الكابتن متواجد عند نقطة الانطلاق`;
+          document.getElementById('ui-drv-live-loc').innerText = `📍 يرجى التوجه للسيارة قبل انتهاء مهلة الانتظار`;
           document.getElementById('wait-5min-box').style.display = 'block';
+          runClientWait5MinCounter(r.arrivedAt);
         } else if (r.status === 'in_progress') {
-          banner.innerText = "🚀 بدأت الرحلة! الكابتن يتحرك بك نحو الوجهة";
-          document.getElementById('ui-drv-live-loc').innerText = `📍 موقع السيارة الحالي أثناء السير: (${drv.lat?.toFixed(4)||''}, ${drv.lng?.toFixed(4)||''})`;
+          banner.innerText = "🚀 رحلتك جارية الآن نحو الوجهة — نتمنى لك رحلة آمنة!";
+          document.getElementById('ui-drv-eta').innerText = `🛣️ المسافة المقطوعة: ${Number(r.liveDistKm||0).toFixed(2)} كم`;
+          document.getElementById('ui-drv-live-loc').innerText = `📍 التتبع العائلي نشط بكود (${r.familyTrackingCode || ''})`;
           document.getElementById('wait-5min-box').style.display = 'none';
           document.getElementById('live-meter-box').style.display = 'block';
           document.getElementById('live-fare').innerText = r.liveFare;
@@ -561,60 +1543,106 @@
           document.getElementById('btn-cancel-ride').style.display = 'none';
         }
 
-        // تحديث خريطة تتبع مكان الكابتن لدى العميل
-        setTimeout(() => {
-          trackMap.resize();
-          trackMarkers.forEach(m => m.remove()); trackMarkers = [];
+        if (!document.getElementById('map-modal').classList.contains('open')) {
+          mountSharedMapInto('active-tracking-map-slot');
+          dynamicMapMarkers.forEach(m => m.remove());
+          dynamicMapMarkers = [];
           if (drv.lat && drv.lng) {
-            trackMarkers.push(new mapboxgl.Marker({ color: '#2563eb' }).setLngLat([drv.lng, drv.lat]).addTo(trackMap));
-            trackMap.easeTo({ center: [drv.lng, drv.lat], duration: 500 });
+            const el = document.createElement('div');
+            el.className = `car-tier-marker ${st.carPinClass}`;
+            el.innerText = '🚕';
+            dynamicMapMarkers.push(new mapboxgl.Marker(el).setLngLat([drv.lng, drv.lat]).addTo(sharedMap));
+            sharedMap.easeTo({ center: [drv.lng, drv.lat], duration: 500 });
           }
-          if (r.status !== 'in_progress') {
-            trackMarkers.push(new mapboxgl.Marker({ color: '#dc2626' }).setLngLat([r.pickup.lng, r.pickup.lat]).addTo(trackMap));
+          if (r.pickup && r.pickup.lat) {
+            pickMarker.setLngLat([r.pickup.lng, r.pickup.lat]);
           }
-        }, 80);
+        }
       } else if (r.status === 'completed' && !r.clientClosedInvoice) {
         document.getElementById('active-trip-card').style.display = 'none';
         document.getElementById('invoice-card').style.display = 'block';
+        const disc = Number(r.promoDiscount || 0);
+        const overCredit = Number(r.overpaymentCreditedToWallet || 0);
         document.getElementById('invoice-body').innerHTML = `
-          <b>كود الرحلة:</b> ${r.safetyCode || r.id}<br>
-          <b>المبلغ النهائي المطلوب:</b> <span style="font-size:1.3rem; font-weight:900; color:var(--primary);">${r.finalFare} ج.م</span>
+          <div><b>كود الرحلة:</b> ${r.safetyCode || r.id}</div>
+          <div><b>المسافة الفعلية:</b> ${Number(r.actualDistanceKm || r.liveDistKm || 0).toFixed(2)} كم</div>
+          ${disc > 0 ? `<div><b>الأجرة قبل الخصم:</b> ${r.tripOriginalFare || r.finalFare} ج.م | <b style="color:var(--success);">خصم البرومو (${r.appliedPromoCode}): -${disc} ج.م</b></div>` : ''}
+          <div><b>المبلغ المطلوب للرحلة:</b> <span style="font-size:1.25rem; font-weight:900; color:var(--primary);">${r.finalFare} ج.م</span></div>
+          ${overCredit > 0 ? `<div style="color:var(--success); font-weight:900;">✨ تم إيداع الفائض النقدي (+${overCredit.toFixed(2)} ج.م) في محفظتك!</div>` : ''}
         `;
-      } else if (['cancelled_no_show','cancelled_by_driver'].includes(r.status)) {
+        validateCurrentClientPromoState();
+      } else if (['cancelled_no_show', 'cancelled_by_driver', 'auto_cancelled_timeout'].includes(r.status)) {
         alert("تم إلغاء الرحلة.");
         myActiveRideId = null;
-        document.getElementById('booking-card').style.display = 'block';
+        document.getElementById('home-clean-card').style.display = 'block';
         document.getElementById('active-trip-card').style.display = 'none';
       }
+    }
+
+    let clientWait5Interval = null;
+    function runClientWait5MinCounter(arrivedAt) {
+      clearInterval(clientWait5Interval);
+      const maxSec = (Number(settings.freeWaitMinutes) || 5) * 60;
+      const tick = () => {
+        const elapsed = Math.floor((Date.now() - (arrivedAt || Date.now())) / 1000);
+        const rem = Math.max(0, maxSec - elapsed);
+        const el = document.getElementById('wait-5min-digits');
+        if (el) el.innerText = `${String(Math.floor(rem / 60)).padStart(2, '0')}:${String(rem % 60).padStart(2, '0')}`;
+      };
+      tick();
+      clientWait5Interval = setInterval(tick, 1000);
     }
 
     function run30SecCancelGrace(acceptedAt) {
       clearInterval(grace30Timer);
       const btn = document.getElementById('btn-cancel-ride');
+      btn.style.display = 'inline-flex';
+      const fee = Number(settings.postArrivalCancelFee || 15);
       const tick = () => {
         const rem = Math.max(0, 30 - Math.floor((Date.now() - (acceptedAt || Date.now())) / 1000));
-        btn.innerText = rem > 0 ? `إلغاء مجاني (${rem}ث)` : `إلغاء (غرامة 10 ج.م)`;
+        btn.innerText = rem > 0 ? `إلغاء مجاني (${rem}ث)` : `إلغاء (غرامة ${fee} ج.م)`;
       };
-      tick(); grace30Timer = setInterval(tick, 1000);
+      tick();
+      grace30Timer = setInterval(tick, 1000);
     }
 
     window.cancelRideByClient = async function() {
       if (!myActiveRideId || !ridesDB[myActiveRideId]) return;
       const r = ridesDB[myActiveRideId];
-      if (r.status === 'offering') {
+      clearInterval(searchLoopInterval);
+
+      if (['offering', 'searching_wait_20s'].includes(r.status)) {
         await remove(ref(db, `smartride/rides/${myActiveRideId}`));
       } else {
         const elapsed = Math.floor((Date.now() - (r.acceptedAt || Date.now())) / 1000);
+        const fee = Number(settings.postArrivalCancelFee || 15);
         if (elapsed > 30 || r.status === 'arrived') {
-          if (!confirm("مرت 30 ثانية! ستنزل غرامة 10 ج.م على رحلتك القادمة. تأكيد؟")) return;
+          if (!confirm(`تنبيه: ستنزل غرامة إلغاء (${fee} ج.م) على رحلتك القادمة لتعويض الكابتن. هل تؤكد الإلغاء؟`)) return;
           const curPen = Number(clientsDB[currentClientPhone]?.pendingPenalty || 0);
-          await update(ref(db, `smartride/clients/${currentClientPhone}`), { pendingPenalty: curPen + 10 });
+          const mode = settings.penaltySplitMode || 'fixed';
+          const dCfg = Number(settings.penaltyDriverShare ?? 13);
+          const dShare = mode === 'fixed' ? dCfg : +(fee * (dCfg / 100)).toFixed(2);
+          const aShare = +(fee - dShare).toFixed(2);
+
+          await update(ref(db, `smartride/clients/${currentClientPhone}`), {
+            pendingPenalty: +(curPen + fee).toFixed(2),
+            pendingPenaltyMeta: {
+              driverId: r.driverId || null,
+              rideId: myActiveRideId,
+              driverShare: dShare,
+              adminShare: aShare,
+              timestamp: Date.now()
+            }
+          });
         }
-        await update(ref(db, `smartride/rides/${myActiveRideId}`), { status: 'cancelled_by_client' });
+        await update(ref(db, `smartride/rides/${myActiveRideId}`), {
+          status: 'cancelled_by_client',
+          cancelledAt: Date.now()
+        });
       }
       await logClientAudit("إلغاء رحلة من العميل", "قام العميل بإلغاء الرحلة", myActiveRideId);
       myActiveRideId = null;
-      document.getElementById('booking-card').style.display = 'block';
+      document.getElementById('home-clean-card').style.display = 'block';
       document.getElementById('active-trip-card').style.display = 'none';
     };
 
@@ -632,79 +1660,23 @@
       window.open(`https://wa.me/${ph}`, '_blank');
     };
 
-    window.messageAdminAboutCurrentRide = function() {
+    // مشاركة كود التتبع العائلي عبر واتساب
+    window.shareFamilyCodeWhatsApp = function() {
       const r = ridesDB[myActiveRideId];
-      document.getElementById('cli-msg-ride-id').value = r ? (r.safetyCode || r.id) : '';
-      document.getElementById('cli-msg-subj').value = `بخصوص الرحلة رقم ${r ? (r.safetyCode || r.id) : ''}`;
-      document.getElementById('cli-messages-modal').classList.add('open');
+      if (!r || !r.familyTrackingCode) return alert("لا توجد رحلة نشطة حالياً لمشاركة كودها.");
+      const msg =
+`🛡️ متابعة رحلتي المباشرة على SmartRide:
+• العميل: ${r.clientName}
+• من: ${r.pickupAddress || ''}
+• إلى: ${r.dropoffAddress || ''}
+• كود التتبع العائلي الفريد: *${r.familyTrackingCode}*
+(أدخل هذا الكود في قسم "متابعة رحلة بكود" داخل تطبيق SmartRide لمتابعة موقع السيارة لحظة بلحظة).`;
+      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
     };
 
-    window.openClientMessages = function() {
-      document.getElementById('cli-messages-modal').classList.add('open');
-    };
-
-    window.sendClientNewThread = async function() {
-      const rideRefCode = document.getElementById('cli-msg-ride-id').value.trim();
-      const subj = document.getElementById('cli-msg-subj').value.trim();
-      const body = document.getElementById('cli-msg-body').value.trim();
-      if (!subj || !body) return alert("اكتب العنوان والرسالة!");
-
-      const refNum = "MSG-" + Math.floor(10000 + Math.random()*90000);
-      const tRef = push(ref(db, 'smartride/messages'));
-      const rKey = push(ref(db, `smartride/messages/${tRef.key}/replies`)).key;
-      await set(tRef, {
-        id: tRef.key, refNumber: refNum, rideId: myActiveRideId || rideRefCode || null,
-        rideCode: rideRefCode || null, userType: 'client', userPhone: currentClientPhone,
-        userName: clientsDB[currentClientPhone]?.name || 'عميل', subject: subj,
-        createdAt: Date.now(), updatedAt: Date.now(),
-        replies: { [rKey]: { sender: 'client', senderName: clientsDB[currentClientPhone]?.name || 'عميل', text: body, timestamp: Date.now() } }
-      });
-      await logClientAudit("إرسال رسالة للإدارة", `الموضوع: ${subj} (${refNum})`, myActiveRideId);
-      alert(`تم إرسال رسالتك برقم مرجعي: ${refNum}`);
-      document.getElementById('cli-msg-body').value = '';
-    };
-
-    function renderCliThreads() {
-      const box = document.getElementById('cli-threads-list');
-      if (!box || !currentClientPhone) return;
-      box.innerHTML = '';
-      Object.values(messagesDB).filter(m => m.userPhone === currentClientPhone).sort((a,b) => b.updatedAt - a.updatedAt).forEach(t => {
-        const reps = Object.values(t.replies || {});
-        box.innerHTML += `
-          <div class="card">
-            <div><b style="color:var(--primary);">${t.refNumber}</b> ${t.rideCode ? `| رحلة: <b>${t.rideCode}</b>` : ''}</div>
-            <div style="font-weight:800; margin:4px 0;">${t.subject}</div>
-            <div style="font-size:0.78rem; color:#475569;">${reps.map(x => `<div><b>${x.sender==='admin'?'🛡️ الإدارة':x.senderName}:</b> ${x.text}</div>`).join('')}</div>
-          </div>
-        `;
-      });
-    }
-
-    window.setDrvStar = function(s) {
-      chosenDrvStars = s;
-      document.querySelectorAll('#cli-stars-box button').forEach((b, i) => b.style.color = i < s ? '#eab308' : '#cbd5e1');
-    };
-
-    window.submitDriverRating = async function() {
-      if (myActiveRideId && ridesDB[myActiveRideId]) {
-        const r = ridesDB[myActiveRideId];
-        if (r.driverId) {
-          const rRef = push(ref(db, `smartride/drivers/${r.driverId}/ratingsList`));
-          await set(rRef, { id: rRef.key, stars: chosenDrvStars, byClient: currentClientPhone, rideId: r.id, timestamp: Date.now() });
-        }
-        await update(ref(db, `smartride/rides/${myActiveRideId}`), { clientClosedInvoice: true });
-      }
-      document.getElementById('invoice-card').style.display = 'none';
-      document.getElementById('booking-card').style.display = 'block';
-      document.getElementById('btn-cancel-ride').style.display = 'inline-flex';
-      myActiveRideId = null;
-    };
-
-    function haversineKm(lat1, lon1, lat2, lon2) {
-      const R = 6371, dLat = (lat2 - lat1)*Math.PI/180, dLon = (lon2 - lon1)*Math.PI/180;
-      const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
-      return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)));
-    }
-  </script>
-</body>
-</html>
+    // متابعة رحلة بكود التتبع العائلي مع الحماية ضد التخمين (Brute Force)
+    window.lookupRideByFamilyCode = function() {
+      const now = Date.now();
+      const resBox = document.getElementById('fam-track-result');
+      if (now < famLockoutUntil) {
+        const waitSec = Math.ceil((famLock
